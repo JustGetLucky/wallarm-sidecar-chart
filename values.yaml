@@ -1,7 +1,7 @@
 wallarmApi:
   token: ""
-  host: audit.api.wallarm.com #api.wallarm.com
-  port: 444
+  host: api.wallarm.com
+  port: 443
   useSSL: true
   caVerify: false
 
@@ -38,8 +38,8 @@ admissionWebhook:
   image:
     registry: quay.io
     image: dmitriev/sidecar-injector
-    tag: latest
-    pullPolicy: Always #IfNotPresent
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
   port: 8443
   service:
     # -- Annotations to be added to admission webhook service

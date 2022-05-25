@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    checksum/config: {{ include (print $.Template.BasePath "/webhook-configmap.yaml") . | sha256sum }}
     {{- with .Values.admissionWebhook.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -22,6 +21,8 @@ spec:
   replicas: {{ .Values.admissionWebhook.replicaCount }}
   template:
     metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/webhook-configmap.yaml") . | sha256sum }}
       labels:
         {{- include "wallarm-sidecar.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: admission-webhook
@@ -37,7 +38,7 @@ spec:
           {{- end }}
           args:
           - -port={{ .Values.admissionWebhook.port }}
-          - -template-file=/etc/webhook/config/template.yaml.tmpl
+          - -template-file=/etc/webhook/config/template.yaml
           - -values-file=/etc/webhook/config/values.yaml
           - -tls-cert-file=/usr/local/certificates/cert
           - -tls-key-file=/usr/local/certificates/key
