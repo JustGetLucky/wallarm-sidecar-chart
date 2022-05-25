@@ -38,8 +38,8 @@ spec:
           {{- end }}
           args:
           - -port={{ .Values.admissionWebhook.port }}
-          - -template-file=/etc/webhook/config/template.yaml
-          - -values-file=/etc/webhook/config/values.yaml
+          - -template-file=/etc/webhook/config/sidecar-template.yaml
+          - -values-file=/etc/webhook/config/sidecar-values.yaml
           - -tls-cert-file=/usr/local/certificates/cert
           - -tls-key-file=/usr/local/certificates/key
           volumeMounts:
