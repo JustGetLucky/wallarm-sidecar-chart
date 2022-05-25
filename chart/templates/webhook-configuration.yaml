@@ -1,0 +1,39 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  {{- if .Values.admissionWebhook.annotations }}
+  annotations: {{ toYaml .Values.admissionWebhook.annotations | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "wallarm-sidecar.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admission-webhook
+    {{- with .Values.admissionWebhook.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: {{ include "wallarm-sidecar.name" . }}-webhook
+webhooks:
+  - name: injector.sidecar.wallarm.io
+    matchPolicy: Equivalent
+    rules:
+      - apiGroups: ["*"]
+        apiVersions: ["v1"]
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - pods
+    failurePolicy: {{ .Values.admissionWebhook.failurePolicy | default "Fail" }}
+    sideEffects: None
+    admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace | quote }}
+        name: {{ include "wallarm-sidecar.name" . }}-webhook
+        path: /inject
+    {{- if .Values.admissionWebhook.timeoutSeconds }}
+    timeoutSeconds: {{ .Values.admissionWebhook.timeoutSeconds }}
+    {{- end }}
+    objectSelector:
+      matchLabels:
+        wallarm-injection: enabled

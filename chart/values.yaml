@@ -1,0 +1,132 @@
+wallarmApi:
+  token: ""
+  host: audit.api.wallarm.com #api.wallarm.com
+  port: 444
+  useSSL: true
+  caVerify: false
+
+sidecarDefaults:
+  wallarm:
+    mode: monitoring
+    proxyPort: 80
+    appPort: 8080
+  container:
+    image:
+      image: "quay.io/dmitriev/node:4.0"
+      pullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 3
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi
+
+admissionWebhook:
+  # -- Annotations to be added to admission webhook resources
+  annotations: {}
+  # -- Labels to be added to admission webhook resources
+  labels: {}
+  failurePolicy: Fail
+  replicaCount: 1
+  image:
+    registry: quay.io
+    image: dmitriev/sidecar-injector
+    tag: latest
+    pullPolicy: Always #IfNotPresent
+  port: 8443
+  service:
+    # -- Annotations to be added to admission webhook service
+    annotations: {}
+    type: ClusterIP
+  resources: {}
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations: []
+  affinity: {}
+
+  patch:
+    image:
+      registry: k8s.gcr.io
+      image: ingress-nginx/kube-webhook-certgen
+      tag: v1.1.1
+      digest: sha256:64d8c73dca984af206adf9d6d7e46aa550362b1d7a01f3a0a91b20cc67868660
+      pullPolicy: IfNotPresent
+    resources: {}
+    runAsUser: 2000
+    fsGroup: 2000
+
+
+postanalytics:
+  # -- Annotations to be added to admission webhook resources
+  annotations: {}
+  # -- Labels to be added to admission webhook resources
+  labels: {}
+
+  tarantool:
+    arena: "0.5"
+    image:
+      registry: docker.io
+      image: wallarm/ingress-tarantool
+      pullPolicy: IfNotPresent
+      tag: "4.0.0-1"
+    livenessProbe:
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources: {}
+    service:
+      # -- Annotations to be added to Tarantool service
+      annotations: {}
+  addnode:
+    resources: {}
+  exportenv:
+    resources: {}
+  heartbeat:
+    resources: {}
+  appstructure:
+    resources: {}
+  cron:
+    resources: {}
+    jobs:
+      exportAttacks:
+        schedule: "* * * * *"
+        timeout: 3h
+      exportCounters:
+        schedule: "* * * * *"
+        timeout: 11m
+      exportEnvironment:
+        schedule: "0 */1 * * *"
+        timeout: 10m
+      bruteDetect:
+        schedule: "* * * * *"
+        timeout: 6m
+      syncMarkers:
+        schedule: "* * * * *"
+        timeout: 1h
+
+  # -- Security Context policies for postanalytics containers
+  containerSecurityContext: {}
+
+  runAsUser: 101
+
+  allowPrivilegeEscalation: false
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+

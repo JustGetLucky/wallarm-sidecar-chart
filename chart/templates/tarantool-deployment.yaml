@@ -1,0 +1,188 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  {{- if .Values.postanalytics.annotations }}
+  annotations: {{ toYaml .Values.postanalytics.annotations | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "wallarm-sidecar.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postanalytics
+    {{- with .Values.postanalytics.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: {{ include "wallarm-sidecar.postanalytics.name" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "wallarm-sidecar.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: postanalytics
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "wallarm-sidecar.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: postanalytics
+    spec:
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml .Values.imagePullSecrets | nindent 8 }}
+    {{- end }}
+      initContainers:
+        - name: addnode
+        {{- if .Values.postanalytics.addnode.image }}
+          {{- with .Values.postanalytics.addnode.image }}
+          image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
+          {{- end }}
+        {{- else }}
+          image: "wallarm/ingress-ruby:{{ .Values.postanalytics.tarantool.image.tag }}"
+        {{- end }}
+          imagePullPolicy: "{{ .Values.postanalytics.tarantool.image.pullPolicy }}"
+          command:
+          - sh
+          - -c
+        {{- if eq .Values.wallarmApi.fallback "on"}}
+        {{ print  "- /opt/wallarm/ruby/usr/share/wallarm-common/synccloud --one-time && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists --one-time -l STDOUT && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists-source --one-time -l STDOUT || true" | indent 2}}
+        {{- else }}
+        {{ print  "- /opt/wallarm/ruby/usr/share/wallarm-common/synccloud --one-time && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists --one-time -l STDOUT && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists-source --one-time -l STDOUT" | indent 2}}
+        {{- end}}
+          env: {{ include "wallarm-sidecar.postanalytics.wallarmApiEnv" . | nindent 10 }}
+          - name: WALLARM_SYNCNODE_OWNER
+            value: www-data
+          - name: WALLARM_SYNCNODE_GROUP
+            value: www-data
+          volumeMounts:
+          - mountPath: /etc/wallarm
+            name: wallarm
+          - mountPath: /var/lib/wallarm-acl
+            name: wallarm-acl
+        {{- if .Values.postanalytics.addnode.resources }}
+          resources: {{ toYaml .Values.postanalytics.addnode.resources | nindent 12 }}
+        {{- end }}
+
+        - name: exportenv
+        {{- if .Values.postanalytics.exportenv.image }}
+          {{- with .Values.postanalytics.exportenv.image }}
+          image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
+          {{- end }}
+        {{- else }}
+          image: "wallarm/ingress-ruby:{{ .Values.postanalytics.tarantool.image.tag }}"
+        {{- end }}
+          imagePullPolicy: "{{ .Values.postanalytics.tarantool.image.pullPolicy }}"
+          command: ["sh", "-c", "timeout 10m /opt/wallarm/ruby/usr/share/wallarm-common/export-environment -l STDOUT || true"]
+          env:
+          - name: WALLARM_INGRESS_CONTROLLER_VERSION
+            value: {{ .Chart.Version | quote }}
+          - name: WALLARM_API_CA_VERIFY
+            value: {{ .Values.wallarmApi.caVerify | toString | quote }}
+          volumeMounts:
+          - mountPath: /etc/wallarm
+            name: wallarm
+        {{- if .Values.postanalytics.exportenv.resources }}
+          resources: {{ toYaml .Values.postanalytics.exportenv.resources | nindent 12 }}
+        {{- end }}
+
+      containers:
+        - name: cron
+        {{- if .Values.postanalytics.cron.image }}
+          {{- with .Values.postanalytics.cron.image }}
+          image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
+          {{- end }}
+        {{- else }}
+          image: "wallarm/ingress-ruby:{{ .Values.postanalytics.tarantool.image.tag }}"
+        {{- end }}
+          imagePullPolicy: "{{ .Values.postanalytics.tarantool.image.pullPolicy }}"
+          command: ["/bin/supercronic", "-json", "/opt/cron/crontab"]
+          env:
+          - name: WALLARM_INGRESS_CONTROLLER_VERSION
+            value: {{ .Chart.Version | quote }}
+          volumeMounts:
+          - mountPath: /etc/wallarm
+            name: wallarm
+          - mountPath: /var/lib/wallarm-acl
+            name: wallarm-acl
+          - mountPath: /opt/cron/crontab
+            name: wallarm-cron
+            subPath: crontab
+            readOnly: true
+          securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
+        {{- if .Values.postanalytics.cron.resources }}
+          resources: {{ toYaml .Values.postanalytics.cron.resources | nindent 12 }}
+        {{- end }}
+
+        - name: tarantool
+          {{- with .Values.postanalytics.tarantool.image }}
+          image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          env:
+            - name: SLAB_ALLOC_ARENA
+              value: {{ .Values.postanalytics.tarantool.arena | quote }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ template "wallarm-sidecar.postanalytics.tarantoolPort" . }}
+            {{- with .Values.postanalytics.tarantool.livenessProbe }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: tarantool
+              containerPort: {{ template "wallarm-sidecar.postanalytics.tarantoolPort" . }}
+              protocol: TCP
+          securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
+        {{- if .Values.postanalytics.tarantool.resources }}
+          resources: {{ toYaml .Values.postanalytics.tarantool.resources | nindent 12 }}
+        {{- end }}
+
+        - name: heartbeat
+        {{- if .Values.postanalytics.heartbeat.image }}
+          {{- with .Values.postanalytics.heartbeat.image }}
+          image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
+          {{- end }}
+        {{- else }}
+          image: "wallarm/ingress-ruby:{{ .Values.postanalytics.tarantool.image.tag }}"
+        {{- end }}
+          imagePullPolicy: {{ .Values.postanalytics.tarantool.image.pullPolicy }}
+          command: ["/opt/wallarm/ruby/usr/share/wallarm-common/synccloud"]
+          env: {{ include "wallarm-sidecar.postanalytics.wallarmApiEnv" . | nindent 10 }}
+          - name: WALLARM_SYNCNODE
+            value: "no"
+          volumeMounts:
+          - mountPath: /etc/wallarm
+            name: wallarm
+          securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
+        {{- if .Values.postanalytics.heartbeat.resources }}
+          resources: {{ toYaml .Values.postanalytics.heartbeat.resources | nindent 12 }}
+        {{- end }}
+
+        - name: appstructure
+        {{- if .Values.postanalytics.appstructure.image }}
+          {{- with .Values.postanalytics.appstructure.image }}
+          image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
+          {{- end }}
+        {{- else }}
+          image: "wallarm/ingress-python:{{ .Values.postanalytics.tarantool.image.tag }}"
+        {{- end }}
+          imagePullPolicy: "{{ .Values.postanalytics.tarantool.image.pullPolicy }}"
+          volumeMounts:
+          - mountPath: /etc/wallarm
+            name: wallarm
+          securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
+        {{- if .Values.postanalytics.appstructure.resources }}
+          resources: {{ toYaml .Values.postanalytics.appstructure.resources | nindent 12 }}
+        {{- end }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
+    {{- end }}
+    {{- if .Values.tolerations }}
+      tolerations: {{ toYaml .Values.tolerations | nindent 8 }}
+    {{- end }}
+    {{- if .Values.affinity }}
+      affinity: {{ toYaml .Values.affinity | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: wallarm
+          emptyDir: {}
+        - name: wallarm-acl
+          emptyDir: {}
+        - name: wallarm-cron
+          configMap:
+            name: {{ template "wallarm-sidecar.postanalytics.cronConfig" . }}
