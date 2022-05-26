@@ -12,7 +12,7 @@ sidecarDefaults:
     appPort: 8080
   container:
     image:
-      image: "quay.io/dmitriev/node:4.0"
+      image: "quay.io/dmitriev/node:4.0.1"
       pullPolicy: IfNotPresent
     livenessProbe:
       failureThreshold: 3

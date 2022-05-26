@@ -14,6 +14,6 @@ data:
     api: {{ toYaml .Values.wallarmApi | nindent 6 }}
     wallarm: {{ toYaml .Values.sidecarDefaults.wallarm | nindent 6 }}
       tarantool:
-        host: postanalitycs.{{ .Release.Namespace }}.cvs
+        host: postanalytics.{{ .Release.Namespace }}.svc
     container: {{ toYaml .Values.sidecarDefaults.container | nindent 6 }}
 {{ (.Files.Glob "files/sidecar-template.yaml").AsConfig | indent 2 }}

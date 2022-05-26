@@ -2,8 +2,8 @@ initContainers:
 volumes:
 containers:
   - name: wallarm-sidecar
-    image: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-image" .Config.Container.image }}
-    imagePullPolicy: IfNotPresent
+    image: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-image" .Config.Container.image.image }}
+    imagePullPolicy: {{ .Config.Container.image.pullPolicy }}
     env:
       - name: WALLARM_API_HOST
         value: {{ .Config.Api.host }}
