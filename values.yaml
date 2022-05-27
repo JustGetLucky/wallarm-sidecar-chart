@@ -8,25 +8,33 @@ wallarmApi:
 sidecarDefaults:
   wallarm:
     mode: monitoring
-    proxyPort: 80
-    appPort: 8080
+    # -- Port listening by application container
+    appPort: 80
+    # -- Port listening by Wallarm Nginx proxy. Can't be the same as appPort
+    proxyPort: 8080
   container:
-    image:
-      image: "quay.io/dmitriev/node:4.0.1"
-      pullPolicy: IfNotPresent
-    livenessProbe:
-      failureThreshold: 3
-      initialDelaySeconds: 20
-      periodSeconds: 10
-      successThreshold: 1
-      timeoutSeconds: 1
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 1000m
-        memory: 512Mi
+    proxy:
+      image:
+        image: "quay.io/dmitriev/node:4.0.1"
+        pullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 1000m
+          memory: 512Mi
+    init:
+      image:
+        image: "quay.io/dmitriev/sidecar-init:0.1.0"
+        pullPolicy: IfNotPresent
+      resources: {}
+#        requests:
+#            cpu: 100m
+#            memory: 128Mi
+#        limits:
+#          cpu: 1000m
+#          memory: 512Mi
 
 admissionWebhook:
   # -- Annotations to be added to admission webhook resources

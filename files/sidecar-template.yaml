@@ -1,9 +1,30 @@
 initContainers:
-volumes:
+  - name: sidecar-init
+    image: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/init-image" .Config.Container.init.image.image }}
+    imagePullPolicy: {{ .Config.Container.init.image.pullPolicy }}
+    env:
+      - name: POD_IP
+        valueFrom:
+          fieldRef:
+            fieldPath: status.podIP
+      - name: APP_PORT
+        value: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-app-port" .Config.Wallarm.appPort}}
+      - name: PROXY_PORT
+        value: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-proxy-port" .Config.Wallarm.proxyPort }}
+    command: ["iptables"]
+    args: ["-t", "nat", "-A", "PREROUTING", "-p", "tcp", "-d", "$(POD_IP)", "--dport", "$(APP_PORT)", "-j", "REDIRECT", "--to-ports", "$(PROXY_PORT)"]
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+        drop:
+        - ALL
+      privileged: true
+
 containers:
-  - name: wallarm-sidecar
-    image: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-image" .Config.Container.image.image }}
-    imagePullPolicy: {{ .Config.Container.image.pullPolicy }}
+  - name: sidecar-proxy
+    image: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-image" .Config.Container.proxy.image.image }}
+    imagePullPolicy: {{ .Config.Container.proxy.image.pullPolicy }}
     env:
       - name: WALLARM_API_HOST
         value: {{ .Config.Api.host }}
@@ -20,19 +41,19 @@ containers:
       - name: NGINX_PORT
         value: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-proxy-port" .Config.Wallarm.proxyPort }}
       - name: NGINX_BACKEND
-        value: "127.0.0.1:{{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-app-port" .Config.Wallarm.appPort}}"
+        value: "127.0.0.1:{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/wallarm-app-port` .Config.Wallarm.appPort}}"
       - name: POSTANALYTIC_ADDRESS
         value: {{ .Config.Wallarm.tarantool.host }}
       {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/wallarm-app-id") -}}
       - name: WALLARM_APPLICATION
         value: {{ index .ObjectMeta.Annotations "sidecar.wallarm.io/wallarm-app-id" }}
       {{- end  }}
-    ports:
-      - containerPort: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-proxy-port" .Config.Wallarm.proxyPort }}
     resources:
       requests:
-        cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-cpu" .Config.Container.resources.requests.cpu }}
-        memory: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-memory" .Config.Container.resources.requests.memory }}
+        cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-cpu" .Config.Container.proxy.resources.requests.cpu }}
+        memory: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-memory" .Config.Container.proxy.resources.requests.memory }}
       limits:
-        cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-cpu-limit" .Config.Container.resources.limits.cpu }}
-        memory: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-memory-limit" .Config.Container.resources.limits.memory }}
+        cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-cpu-limit" .Config.Container.proxy.resources.limits.cpu }}
+        memory: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-memory-limit" .Config.Container.proxy.resources.limits.memory }}
+
+volumes:
