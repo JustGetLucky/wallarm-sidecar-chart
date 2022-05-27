@@ -36,4 +36,4 @@ webhooks:
     {{- end }}
     objectSelector:
       matchLabels:
-        wallarm-injection: enabled
+        wallarm-sidecar: enabled

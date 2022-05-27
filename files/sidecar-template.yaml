@@ -20,6 +20,14 @@ initContainers:
         drop:
         - ALL
       privileged: true
+    resources:
+      requests:
+        cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/init-cpu" .Config.Container.init.resources.requests.cpu }}
+        memory: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/init-memory" .Config.Container.init.resources.requests.memory }}
+      limits:
+        cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/init-cpu-limit" .Config.Container.init.resources.limits.cpu }}
+        memory: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/init-memory-limit" .Config.Container.init.resources.limits.memory }}
+
 
 containers:
   - name: sidecar-proxy
@@ -48,6 +56,14 @@ containers:
       - name: WALLARM_APPLICATION
         value: {{ index .ObjectMeta.Annotations "sidecar.wallarm.io/wallarm-app-id" }}
       {{- end  }}
+    livenessProbe:
+      tcpSocket:
+        port: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-proxy-port" .Config.Wallarm.proxyPort }}
+      {{ toYaml .Config.Container.proxy.livenessProbe | indent 6 }}
+    ports:
+      - name: proxy
+        containerPort: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/wallarm-proxy-port" .Config.Wallarm.proxyPort }}
+        protocol: TCP
     resources:
       requests:
         cpu: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/proxy-cpu" .Config.Container.proxy.resources.requests.cpu }}
