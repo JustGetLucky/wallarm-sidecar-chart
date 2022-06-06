@@ -16,4 +16,5 @@ data:
       tarantool:
         host: postanalytics.{{ .Release.Namespace }}.svc
     container: {{ toYaml .Values.sidecarDefaults.container | nindent 6 }}
+    deployment: {{ toYaml .Values.sidecarDefaults.deployment | nindent 6 }}
 {{ (.Files.Glob "files/sidecar-template.yaml").AsConfig | indent 2 }}

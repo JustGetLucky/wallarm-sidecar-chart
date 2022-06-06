@@ -7,41 +7,106 @@ wallarmApi:
 
 sidecarDefaults:
   wallarm:
-    # -- Wallarm mode. Can be: monitoring, block, off
+    # -- Wallarm mode: monitoring, block, off
     mode: monitoring
-    # -- Port listening by application container
-    appPort: 80
-    # -- Port listening by Wallarm Nginx proxy. Can't be the same as appPort
-    proxyPort: 8080
+    ## -- Wallarm application ID
+    # application: 1
+    modeAllowOverride: on
+    parseResponse: on
+    parseWebsocket: off
+    unpackResponse: on
+  nginx:
+    # -- Port listening by proxy. Can't be the same as proxyPassPort
+    listenPort: 8080
+    # -- Port listening by application container. Can't be the same as listenPort
+    proxyPassPort: 80
+    # -- Port for Wallarm status, Nginx stats and health check endpoint
+    statusPort: 10246
+    # -- Path to Nginx status endpoint
+    statusPath: /status
+    # -- Path to Nginx health check endpoint
+    healthPath: /healthz
+    # -- Path to Wallarm status endpoint. Status provides in json format
+    wallarmStatusPath: /wallarm-status
+    # -- Port for Wallarm metrics endpoint.
+    wallarmMetricsPort: 18080
+    # -- Port to Wallarm metrics endpoint. Metrics provide in Prometheus format
+    wallarmMetricsPath: /wallarm-metrics
+  # -- Sidecar deployment options
+  deployment:
+    # -- Sidecar deployment scheme: single or split
+    scheme: single
+    # -- Enable or disable ip-tables init container for port redirection
+    ipTablesEnabled: true
   container:
-    proxy:
-      image:
-        image: "quay.io/dmitriev/node:4.0.1"
-        pullPolicy: IfNotPresent
-      livenessProbe:
-        initialDelaySeconds: 50
-        periodSeconds: 10
-        failureThreshold: 3
-        successThreshold: 1
-        timeoutSeconds: 1
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 1000m
-          memory: 512Mi
-    init:
-      image:
-        image: "quay.io/dmitriev/sidecar-init:0.1.0"
-        pullPolicy: IfNotPresent
-      resources:
-        requests:
+    # -- Default containers configuration for single deployment scheme
+    single:
+      proxy:
+        image:
+          image: "quay.io/dmitriev/node:4.0.1"
+          pullPolicy: IfNotPresent
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+      init:
+        resources:
+          requests:
             cpu: 20m
             memory: 32Mi
-        limits:
-          cpu: 100m
-          memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+    # -- Default containers configuration for split deployment scheme
+    split:
+      proxy:
+        image:
+          image: "quay.io/dmitriev/sidecar-proxy:4.0.2-1"
+          pullPolicy: IfNotPresent
+        livenessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+      helper:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+      init:
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
 
 admissionWebhook:
   # -- Annotations to be added to admission webhook resources
@@ -90,7 +155,7 @@ postanalytics:
       registry: docker.io
       image: wallarm/ingress-tarantool
       pullPolicy: IfNotPresent
-      tag: "4.0.0-1"
+      tag: "4.0.2-1"
     livenessProbe:
       failureThreshold: 3
       initialDelaySeconds: 10
@@ -133,7 +198,7 @@ postanalytics:
 
   runAsUser: 101
 
-  allowPrivilegeEscalation: false
+  allowPrivilegeEscalation: true
 
   nodeSelector: {}
 
