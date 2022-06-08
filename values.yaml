@@ -11,22 +11,22 @@ sidecarDefaults:
     mode: monitoring
     ## -- Wallarm application ID
     # application: 1
-    modeAllowOverride: on
-    parseResponse: on
-    parseWebsocket: off
-    unpackResponse: on
+    modeAllowOverride: "on"
+    parseResponse: "on"
+    parseWebsocket: "off"
+    unpackResponse: "on"
   nginx:
-    # -- Port listening by proxy. Can't be the same as proxyPassPort
+    # -- Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort
     listenPort: 8080
-    # -- Port listening by application container. Can't be the same as listenPort
+    # -- Port listening by application container. Can't be the same as nginx.listenPort
     proxyPassPort: 80
     # -- Port for Wallarm status, Nginx stats and health check endpoint
     statusPort: 10246
     # -- Path to Nginx status endpoint
     statusPath: /status
     # -- Path to Nginx health check endpoint
-    healthPath: /healthz
-    # -- Path to Wallarm status endpoint. Status provides in json format
+    healthPath: /health
+    # -- Path to Wallarm status endpoint. JSON format
     wallarmStatusPath: /wallarm-status
     # -- Port for Wallarm metrics endpoint.
     wallarmMetricsPort: 18080
@@ -34,75 +34,69 @@ sidecarDefaults:
     wallarmMetricsPath: /wallarm-metrics
   # -- Sidecar deployment options
   deployment:
-    # -- Sidecar deployment scheme: single or split
+    # -- Sidecar deployment scheme (single|split)
     scheme: single
-    # -- Enable or disable ip-tables init container for port redirection
-    ipTablesEnabled: true
+    # -- Enable or disable ip-tables init container for port redirection (true|false)
+    iptablesEnable: true
+  # -- Default configuration for sidecar containers
   container:
-    # -- Default containers configuration for single deployment scheme
-    single:
-      proxy:
-        image:
-          image: "quay.io/dmitriev/node:4.0.1"
-          pullPolicy: IfNotPresent
-        livenessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          failureThreshold: 3
-          successThreshold: 1
-          timeoutSeconds: 1
+    # -- Default configuration for proxy container
+    proxy:
+      image:
+        image: "quay.io/dmitriev/sidecar-proxy:4.0.2-1"
+        pullPolicy: IfNotPresent
+      # -- Enable httpGet liveness probe to path "sidecarDefaults.nginx.healthPath" (true|false)
+      livenessProbeEnable: true
+      # -- Liveness probe configuration. If it's commented out then Kubernetes defaults will be used
+      livenessProbe:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 3
+        successThreshold: 1
+        timeoutSeconds: 1
+      single:
+        # -- Resources for proxy container in "single" deployment scheme. Applicable if "sidecarDefaults.deployment.scheme" is set to "single"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      split:
+        # -- Resources for proxy container in "split" deployment scheme. Applicable if "sidecarDefaults.deployment.scheme" is set to "split"
         resources:
           requests:
             cpu: 100m
             memory: 128Mi
           limits:
-            cpu: 1000m
-            memory: 512Mi
-      init:
+            cpu: 300m
+            memory: 256Mi
+    helper:
+      # -- Resources for helper container. Applicable if "sidecarDefaults.deployment.scheme" is set to "split"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 300m
+          memory: 256Mi
+    # -- Default configuration for init-containers
+    init:
+      helper:
+        # -- Resources for init-helper container. Applicable if "sidecarDefaults.deployment.scheme" is set to "split"
         resources:
           requests:
-            cpu: 20m
-            memory: 32Mi
-          limits:
             cpu: 100m
             memory: 64Mi
-    # -- Default containers configuration for split deployment scheme
-    split:
-      proxy:
-        image:
-          image: "quay.io/dmitriev/sidecar-proxy:4.0.2-1"
-          pullPolicy: IfNotPresent
-        livenessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          failureThreshold: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        readinessProbe:
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          failureThreshold: 3
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
           limits:
-            cpu: 500m
-            memory: 256Mi
-      helper:
-        resources:
-          requests:
-            cpu: 100m
+            cpu: 300m
             memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 256Mi
-      init:
+      iptables:
+        # -- Resources for init-iptables container. Applicable if "sidecarDefaults.deployment.iptablesEnable" is set to "true"
         resources:
           requests:
-            cpu: 20m
+            cpu: 50m
             memory: 32Mi
           limits:
             cpu: 100m

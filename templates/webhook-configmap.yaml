@@ -10,11 +10,12 @@ metadata:
   name: {{ include "wallarm-sidecar.name" . }}-webhook
   namespace: {{ .Release.Namespace }}
 data:
-  sidecar-values.yaml: |-
+  sidecar-config.yaml: |-
     api: {{ toYaml .Values.wallarmApi | nindent 6 }}
     wallarm: {{ toYaml .Values.sidecarDefaults.wallarm | nindent 6 }}
       tarantool:
         host: postanalytics.{{ .Release.Namespace }}.svc
     container: {{ toYaml .Values.sidecarDefaults.container | nindent 6 }}
     deployment: {{ toYaml .Values.sidecarDefaults.deployment | nindent 6 }}
+    nginx: {{ toYaml .Values.sidecarDefaults.nginx| nindent 6 }}
 {{ (.Files.Glob "files/sidecar-template.yaml").AsConfig | indent 2 }}
