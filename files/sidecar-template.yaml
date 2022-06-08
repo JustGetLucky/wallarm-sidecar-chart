@@ -83,6 +83,10 @@ volumes:
     - name: NGINX_SERVER_INCLUDE
       value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/nginx-server-include` }}"
     {{- end }}
+    {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-location-include") -}}
+    - name: NGINX_LOCATION_INCLUDE
+      value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/nginx-location-include` }}"
+    {{- end }}
     {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-extra-modules") -}}
     - name: NGINX_EXTRA_MODULES
       value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/nginx-extra-modules` }}"

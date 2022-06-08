@@ -1,0 +1,22 @@
+wallarmApi:
+  token: FgIfsdJ1iPdRpCW4GDrIwZtx4XSVatBtuAI1Vo6sUgPGhe2wYPREOKNHAUkTHsFK
+  host: audit.api.wallarm.com
+  port: 444
+
+admissionWebhook:
+  image:
+    registry: "localhost:5000"
+    image: sidecar-injector
+    tag: "0.1.0"
+    pullPolicy: Always #IfNotPresent
+
+sidecarDefaults:
+  deployment:
+    scheme: split
+    ipTablesEnable: true
+  container:
+    proxy:
+      image:
+        image: "localhost:5000/sidecar-proxy:4.0.2-1"
+        pullPolicy: Always
+      livenessProbeEnable: false
