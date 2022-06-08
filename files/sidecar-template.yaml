@@ -75,6 +75,18 @@ volumes:
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/nginx-wallarm-metrics-port` .Config.Nginx.wallarmMetricsPort }}"
     - name: NGINX_WALLARM_METRICS_PATH
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/nginx-wallarm-metrics-path` .Config.Nginx.wallarmMetricsPath }}"
+    {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-http-include") -}}
+    - name: NGINX_HTTP_INCLUDE
+      value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/nginx-http-include` }}"
+    {{- end }}
+    {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-server-include") -}}
+    - name: NGINX_SERVER_INCLUDE
+      value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/nginx-server-include` }}"
+    {{- end }}
+    {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-extra-modules") -}}
+    - name: NGINX_EXTRA_MODULES
+      value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/nginx-extra-modules` }}"
+    {{- end }}
   ports:
     - name: status
       containerPort: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/nginx-status-port" .Config.Nginx.statusPort }}
