@@ -71,7 +71,7 @@ spec:
           command: ["sh", "-c", "timeout 10m /opt/wallarm/ruby/usr/share/wallarm-common/export-environment -l STDOUT || true"]
           env:
           - name: WALLARM_INGRESS_CONTROLLER_VERSION
-            value: {{ .Chart.Version | quote }}
+            value: {{ .Chart.AppVersion | quote }}
           - name: WALLARM_API_CA_VERIFY
             value: {{ .Values.wallarmApi.caVerify | toString | quote }}
           volumeMounts:
@@ -94,7 +94,7 @@ spec:
           command: ["/bin/supercronic", "-json", "/opt/cron/crontab"]
           env:
           - name: WALLARM_INGRESS_CONTROLLER_VERSION
-            value: {{ .Chart.Version | quote }}
+            value: {{ .Chart.AppVersion | quote }}
           volumeMounts:
           - mountPath: /etc/wallarm
             name: wallarm
