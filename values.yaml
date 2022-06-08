@@ -43,7 +43,7 @@ sidecarDefaults:
     # -- Default configuration for proxy container
     proxy:
       image:
-        image: "quay.io/dmitriev/sidecar-proxy:4.0.2-1"
+        image: "quay.io/dmitriev/sidecar-proxy:4.0.3-1"
         pullPolicy: IfNotPresent
       # -- Enable httpGet liveness probe to path "sidecarDefaults.nginx.healthPath" (true|false)
       livenessProbeEnable: true
@@ -149,7 +149,7 @@ postanalytics:
       registry: docker.io
       image: wallarm/ingress-tarantool
       pullPolicy: IfNotPresent
-      tag: "4.0.2-1"
+      tag: "4.0.3-1"
     livenessProbe:
       failureThreshold: 3
       initialDelaySeconds: 10

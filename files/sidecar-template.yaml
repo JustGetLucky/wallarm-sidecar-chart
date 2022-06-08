@@ -41,7 +41,7 @@ volumes:
     {{ template "wallarmApiVariables" . }}
       #TODO Determine proper way to identify sidecar version
     - name: WALLARM_INGRESS_CONTROLLER_VERSION
-      value: "4.0.2"
+      value: "{{ .Config.Wallarm.version }}"
     {{- end  }}
     {{ if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/wallarm-application") -}}
     - name: WALLARM_APPLICATION
@@ -149,7 +149,7 @@ volumes:
       value: www-data
       #TODO Determine proper way to identify sidecar version
     - name: WALLARM_INGRESS_CONTROLLER_VERSION
-      value: "4.0.2"
+      value: "{{ .Config.Wallarm.version }}"
   volumeMounts:
     - mountPath: /etc/wallarm
       name: wallarm
@@ -179,7 +179,7 @@ volumes:
       value: www-data
       #TODO Determine proper way to identify sidecar version
     - name: WALLARM_INGRESS_CONTROLLER_VERSION
-      value: "4.0.2"
+      value: "{{ .Config.Wallarm.version }}"
   volumeMounts:
     - mountPath: /etc/wallarm
       name: wallarm

@@ -13,6 +13,7 @@ data:
   sidecar-config.yaml: |-
     api: {{ toYaml .Values.wallarmApi | nindent 6 }}
     wallarm: {{ toYaml .Values.sidecarDefaults.wallarm | nindent 6 }}
+      version: {{ .Chart.AppVersion }}
       tarantool:
         host: postanalytics.{{ .Release.Namespace }}.svc
     container: {{ toYaml .Values.sidecarDefaults.container | nindent 6 }}
