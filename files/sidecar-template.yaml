@@ -39,6 +39,7 @@ volumes:
   env:
     {{ if ne (getAnnotation .ObjectMeta "sidecar.wallarm.io/sidecar-deployment-scheme" .Config.Deployment.scheme) "split" -}}
     {{ template "wallarmApiVariables" . }}
+    {{ template "wallarmCronVariables" . }}
       #TODO Determine proper way to identify sidecar version
     - name: WALLARM_INGRESS_CONTROLLER_VERSION
       value: "{{ .Config.Wallarm.version }}"
@@ -143,6 +144,7 @@ volumes:
   command: ["supervisord", "-c", "/etc/supervisor/supervisord.helper.conf"]
   env:
     {{ template "wallarmApiVariables" . }}
+    {{ template "wallarmCronVariables" . }}
     - name: WALLARM_SYNCNODE_OWNER
       value: www-data
     - name: WALLARM_SYNCNODE_GROUP
@@ -224,15 +226,34 @@ volumes:
 
 {{- define "wallarmApiVariables" }}
     - name: WALLARM_API_HOST
-      value: {{ .Config.Api.host }}
+      value: "{{ .Config.Api.host }}"
     - name: WALLARM_API_PORT
-      value: {{ .Config.Api.port }}
+      value: "{{ .Config.Api.port }}"
     - name: WALLARM_API_TOKEN
-      value: {{ .Config.Api.token }}
+      value: "{{ .Config.Api.token }}"
     - name: WALLARM_API_USE_SSL
-      value: {{ .Config.Api.useSSL }}
+      value: "{{ .Config.Api.useSSL }}"
     - name: WALLARM_API_CA_VERIFY
-      value: {{ .Config.Api.caVerify }}
+      value: "{{ .Config.Api.caVerify }}"
+{{- end }}
+
+{{- define "wallarmCronVariables" }}
+    - name: WALLARM_CRON_EXPORT_ENV_SCHEDULE
+      value: "{{ .Config.Wallarm.cronJobs.exportEnvironment.schedule }}"
+    - name: WALLARM_CRON_EXPORT_ENV_TIMEOUT
+      value: "{{ .Config.Wallarm.cronJobs.exportEnvironment.timeout }}"
+    - name: WALLARM_CRON_EXPORT_METRICS_SCHEDULE
+      value: "{{ .Config.Wallarm.cronJobs.exportMetrics.schedule }}"
+    - name: WALLARM_CRON_EXPORT_METRICS_TIMEOUT
+      value: "{{ .Config.Wallarm.cronJobs.exportMetrics.timeout }}"
+    - name: WALLARM_CRON_SYNC_IP_LISTS_SCHEDULE
+      value: "{{ .Config.Wallarm.cronJobs.syncIpLists.schedule }}"
+    - name: WALLARM_CRON_SYNC_IP_LISTS_TIMEOUT
+      value: "{{ .Config.Wallarm.cronJobs.syncIpLists.timeout }}"
+    - name: WALLARM_CRON_SYNC_IP_LISTS_SOURCE_SCHEDULE
+      value: "{{ .Config.Wallarm.cronJobs.syncIpListsSource.schedule }}"
+    - name: WALLARM_CRON_SYNC_IP_LISTS_SOURCE_TIMEOUT
+      value: "{{ .Config.Wallarm.cronJobs.syncIpListsSource.timeout }}"
 {{- end }}
 
 {{- define "helperContainer.resources" }}

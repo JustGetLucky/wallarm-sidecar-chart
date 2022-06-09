@@ -15,6 +15,19 @@ sidecarDefaults:
     parseResponse: "on"
     parseWebsocket: "off"
     unpackResponse: "on"
+    cronJobs:
+      exportEnvironment:
+        schedule: "0 */1 * * *"
+        timeout: 10m
+      exportMetrics:
+        schedule: "* * * * *"
+        timeout: 3h
+      syncIpLists:
+        schedule: "* * * * *"
+        timeout: 3h
+      syncIpListsSource:
+        schedule: "*/5 * * * *"
+        timeout: 3h
   nginx:
     # -- Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort
     listenPort: 8080
