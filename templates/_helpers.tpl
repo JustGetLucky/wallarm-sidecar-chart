@@ -77,9 +77,9 @@ allowPrivilegeEscalation: {{ .Values.postanalytics.allowPrivilegeEscalation }}
 
 {{- define "wallarm-sidecar.postanalytics.wallarmApiEnv" -}}
 - name: WALLARM_API_HOST
-  value: {{ .Values.wallarmApi.host | default "api.wallarm.com" }}
+  value: {{ .Values.wallarmApi.host | quote }}
 - name: WALLARM_API_PORT
-  value: {{ .Values.wallarmApi.port | default "444" | quote }}
+  value: {{ .Values.wallarmApi.port | quote }}
 - name: WALLARM_API_USE_SSL
   value: {{ .Values.wallarmApi.useSSL | toString | quote }}
 - name: WALLARM_API_CA_VERIFY

@@ -19,7 +19,6 @@ webhooks:
         apiVersions: ["v1"]
         operations:
           - CREATE
-          - UPDATE
         resources:
           - pods
     failurePolicy: {{ .Values.admissionWebhook.failurePolicy | default "Fail" }}
