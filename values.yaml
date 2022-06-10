@@ -15,6 +15,9 @@ sidecarDefaults:
     parseResponse: "on"
     parseWebsocket: "off"
     unpackResponse: "on"
+    upstream:
+      connectAttempts: 10
+      reconnectInterval: 15s
     cronJobs:
       exportEnvironment:
         schedule: "0 */1 * * *"
@@ -143,7 +146,6 @@ admissionWebhook:
       registry: k8s.gcr.io
       image: ingress-nginx/kube-webhook-certgen
       tag: v1.1.1
-      digest: sha256:64d8c73dca984af206adf9d6d7e46aa550362b1d7a01f3a0a91b20cc67868660
       pullPolicy: IfNotPresent
     resources: {}
     runAsUser: 2000

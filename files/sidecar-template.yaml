@@ -60,6 +60,10 @@ volumes:
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/wallarm-unpack-response` .Config.Wallarm.unpackResponse }}"
     - name: WALLARM_TARANTOOL_HOST
       value: "{{ .Config.Wallarm.tarantool.host }}"
+    - name: WALLARM_UPSTREAM_CONNECT_ATTEMPTS
+      value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/wallarm-upstream-connect-attempts` .Config.Wallarm.upstream.connectAttempts }}"
+    - name: WALLARM_UPSTREAM_RECONNECT_INTERVAL
+      value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/wallarm-upstream-reconnect-interval` .Config.Wallarm.upstream.reconnectInterval }}"
     - name: NGINX_LISTEN_PORT
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/nginx-listen-port` .Config.Nginx.listenPort }}"
     - name: NGINX_PROXY_PASS_PORT
