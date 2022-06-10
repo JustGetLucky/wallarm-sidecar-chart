@@ -70,8 +70,8 @@ capabilities:
   - ALL
   add:
   - NET_BIND_SERVICE
-runAsUser: {{ .Values.postanalytics.runAsUser }}
-allowPrivilegeEscalation: {{ .Values.postanalytics.allowPrivilegeEscalation }}
+runAsUser: 101
+allowPrivilegeEscalation: false
 {{- end }}
 {{- end -}}
 
