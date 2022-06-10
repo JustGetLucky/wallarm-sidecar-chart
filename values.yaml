@@ -1,22 +1,35 @@
+# -- Wallarm API settings for Post-analytics module and sidecar containers.
+# @default -- *See below for details*
 wallarmApi:
+  # -- Token to authorize in the Wallarm Cloud
   token: ""
+  # -- Address of Wallarm API service
   host: api.wallarm.com
+  # -- Port of Wallarm API service
   port: 443
   useSSL: true
-  caVerify: false
+  caVerify: true
 
 sidecarDefaults:
+  # -- Wallarm node configuration. Parameters in this section can be overwritten individually for each pod using its `metadata.annotations`
+  # @default -- *See below for details*
   wallarm:
-    # -- Wallarm mode: monitoring, block, off
+    # -- Wallarm mode: `monitoring, `block` or `off`
     mode: monitoring
-    ## -- Wallarm application ID
+    # -- Wallarm application ID
     # application: 1
+    # -- Manages the ability to override the wallarm_mode values via filtering in the Cloud (custom ruleset): `on`, `off` or `strict`
     modeAllowOverride: "on"
+    # -- Whether to analyze the application responses for attacks: `on` or `off`
     parseResponse: "on"
+    # -- Whether to analyze WebSocket's messages for attacks: `on` or `off`
     parseWebsocket: "off"
+    # -- Whether to decompress compressed data returned in the application response: `on` or `off`
     unpackResponse: "on"
     upstream:
+      # -- Defines the number of immediate reconnects to the Tarantool or Wallarm API
       connectAttempts: 10
+      # -- Defines the interval between attempts to reconnect to the Tarantool or Wallarm API
       reconnectInterval: 15s
     cronJobs:
       exportEnvironment:
@@ -31,122 +44,149 @@ sidecarDefaults:
       syncIpListsSource:
         schedule: "*/5 * * * *"
         timeout: 3h
+  # -- Default parameters for Nginx configuration of sidecar proxy container. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
+  # @default -- *See below for details*
   nginx:
-    # -- Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort
-    listenPort: 8080
-    # -- Port listening by application container. Can't be the same as nginx.listenPort
+    # -- Port listening by application container
     proxyPassPort: 80
+    # -- Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort.
+    listenPort: 8080
     # -- Port for Wallarm status, Nginx stats and health check endpoint
     statusPort: 10246
     # -- Path to Nginx status endpoint
     statusPath: /status
     # -- Path to Nginx health check endpoint
     healthPath: /health
-    # -- Path to Wallarm status endpoint. JSON format
+    # -- Path to Wallarm status endpoint, JSON format
     wallarmStatusPath: /wallarm-status
-    # -- Port for Wallarm metrics endpoint.
+    # -- Port for Wallarm metrics endpoint
     wallarmMetricsPort: 18080
-    # -- Port to Wallarm metrics endpoint. Metrics provide in Prometheus format
+    # -- Port to Wallarm metrics endpoint. Metrics provide in Prometheus format.
     wallarmMetricsPath: /wallarm-metrics
-  # -- Sidecar deployment options
+  # Default sidecar deployment options. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
+  # @default -- *See below for details*
   deployment:
-    # -- Sidecar deployment scheme (single|split)
+    # -- Sidecar deployment scheme: `single` or `split`
     scheme: single
-    # -- Enable or disable ip-tables init container for port redirection (true|false)
+    # -- Enable or disable `iptables` init container for port redirection
     iptablesEnable: true
-  # -- Default configuration for sidecar containers
+  # Default configuration for sidecar containers. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
+  # @default -- *See below for details*
   container:
     # -- Default configuration for proxy container
+    # @default -- *See below for details*
     proxy:
       image:
+        # -- Image for all containers in sidecar scheme
         image: "quay.io/dmitriev/sidecar-proxy:4.0.3-1"
+        # -- Image pullPolicy
         pullPolicy: IfNotPresent
-      # -- Enable httpGet liveness probe to path "sidecarDefaults.nginx.healthPath" (true|false)
+      # -- Enable httpGet liveness probe to path "sidecarDefaults.nginx.healthPath"
       livenessProbeEnable: true
-      # -- Liveness probe configuration. If it's commented out then Kubernetes defaults will be used
+      # -- Parameters for httpGet liveness probe configuration. Applicable if "sidecarDefaults.container.proxy.livenessProbeEnable: true"
+      # @default -- *See below for details*
       livenessProbe:
+        # -- Initial delay in seconds. Do not set initial delay below 60. It's time for bootstrapping sidecar and connecting to the cloud
         initialDelaySeconds: 60
+        # -- Probe period in seconds
         periodSeconds: 10
+        # -- Probe failure threshold
         failureThreshold: 3
+        # -- Probe success threshold
         successThreshold: 1
+        # -- Probe timeout in seconds
         timeoutSeconds: 1
       single:
-        # -- Resources for proxy container in "single" deployment scheme. Applicable if "sidecarDefaults.deployment.scheme" is set to "single"
-        resources:
-          requests:
-            cpu: 200m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
+        # -- Default resources for proxy container in `single` deployment scheme. Applicable only if `sidecarDefaults.deployment.scheme: single`
+        resources: {}
+        #  requests:
+        #    cpu: 200m
+        #    memory: 256Mi
+        #  limits:
+        #    cpu: 500m
+        #    memory: 512Mi
       split:
-        # -- Resources for proxy container in "split" deployment scheme. Applicable if "sidecarDefaults.deployment.scheme" is set to "split"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 300m
-            memory: 256Mi
+        # -- Default resources for proxy container in `split` deployment scheme. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
+        resources: {}
+        #  requests:
+        #    cpu: 100m
+        #    memory: 128Mi
+        #  limits:
+        #    cpu: 300m
+        #    memory: 256Mi
+    # -- Default configuration for helper container
+    # @default -- *See below for details*
     helper:
-      # -- Resources for helper container. Applicable if "sidecarDefaults.deployment.scheme" is set to "split"
-      resources:
-        requests:
-          cpu: 100m
-          memory: 128Mi
-        limits:
-          cpu: 300m
-          memory: 256Mi
+      # -- Resources for helper container. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
+      resources: {}
+      #  requests:
+      #    cpu: 100m
+      #    memory: 128Mi
+      #  limits:
+      #    cpu: 300m
+      #    memory: 256Mi
     # -- Default configuration for init-containers
+    # @default -- *See below for details*
     init:
       helper:
-        # -- Resources for init-helper container. Applicable if "sidecarDefaults.deployment.scheme" is set to "split"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 300m
-            memory: 128Mi
+        # -- Resources for init-helper container. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
+        resources: {}
+        #  requests:
+        #    cpu: 100m
+        #    memory: 64Mi
+        #  limits:
+        #    cpu: 300m
+        #    memory: 128Mi
       iptables:
-        # -- Resources for init-iptables container. Applicable if "sidecarDefaults.deployment.iptablesEnable" is set to "true"
-        resources:
-          requests:
-            cpu: 50m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 64Mi
+        # -- Resources for init-iptables container. Applicable if `sidecarDefaults.deployment.iptablesEnable` is set to `true`
+        resources: {}
+        #  requests:
+        #    cpu: 50m
+        #    memory: 32Mi
+        #  limits:
+        #    cpu: 100m
+        #    memory: 64Mi
 
 admissionWebhook:
   # -- Annotations to be added to admission webhook resources
   annotations: {}
   # -- Labels to be added to admission webhook resources
   labels: {}
+  # -- Admission webhook failure policy
   failurePolicy: Fail
-  replicaCount: 1
   image:
+    # -- Image registry
     registry: quay.io
+    # -- Image repository
     image: dmitriev/sidecar-injector
+    # -- Image tag
     tag: "0.1.0"
+    # -- Image pullPolicy
     pullPolicy: IfNotPresent
+  # -- Admission webhook listening port
   port: 8443
+  # -- Replica count of admission webhook deployment
+  replicaCount: 1
   service:
     # -- Annotations to be added to admission webhook service
     annotations: {}
     type: ClusterIP
+  # -- Resources for admission webhook Pod
   resources: {}
-  nodeSelector:
-    kubernetes.io/os: linux
+  nodeSelector: {}
   tolerations: []
   affinity: {}
 
   patch:
     image:
+      # -- Image registry
       registry: k8s.gcr.io
+      # -- Image repository
       image: ingress-nginx/kube-webhook-certgen
+      # -- Image tag
       tag: v1.1.1
       pullPolicy: IfNotPresent
+    # -- Resources for path helper Jobs
     resources: {}
     runAsUser: 2000
     fsGroup: 2000
@@ -171,48 +211,68 @@ postanalytics:
       periodSeconds: 10
       successThreshold: 1
       timeoutSeconds: 1
+    # -- Post-analytics pod. `tarantool` container resources: requests & limits
     resources: {}
     service:
       # -- Annotations to be added to Tarantool service
       annotations: {}
-  addnode:
-    resources: {}
-  exportenv:
-    resources: {}
-  heartbeat:
-    resources: {}
-  appstructure:
-    resources: {}
-  cron:
-    resources: {}
-    jobs:
-      exportAttacks:
-        schedule: "* * * * *"
-        timeout: 3h
-      exportCounters:
-        schedule: "* * * * *"
-        timeout: 11m
-      exportEnvironment:
-        schedule: "0 */1 * * *"
-        timeout: 10m
-      bruteDetect:
-        schedule: "* * * * *"
-        timeout: 6m
-      syncMarkers:
-        schedule: "* * * * *"
-        timeout: 1h
-
-  # -- Security Context policies for postanalytics containers
-  containerSecurityContext: {}
-
-  runAsUser: 101
-
-  allowPrivilegeEscalation: true
+  helpers:
+    addnode:
+      # -- `addnode` init container resources: requests & limits
+      resources: {}
+    exportenv:
+      # -- `exportenv` init container resources: requests & limits
+      resources: {}
+    heartbeat:
+      # -- `heartbeat` helper container resources: requests & limits
+      resources: {}
+    appstructure:
+      # -- `appstructure` helper container resources: requests & limits
+      resources: {}
+    cron:
+      # -- `cron` helper container resources: requests & limits
+      resources: {}
+      # -- Cron jobs configuration
+      # @default -- *See below for details*
+      jobs:
+        # -- Parameters for `export attacks` job
+        # @default -- *See below for details*
+        exportAttacks:
+          # -- Job schedule in cron format
+          schedule: "* * * * *"
+          # -- Job timeout
+          timeout: 3h
+        # -- Parameters for `export counters` job
+        # @default -- *See below for details*
+        exportCounters:
+          # -- Job schedule in cron format
+          schedule: "* * * * *"
+          # -- Job timeout
+          timeout: 11m
+        # -- Parameters for `export environment` job
+        # @default -- *See below for details*
+        exportEnvironment:
+          # -- Job schedule in cron format
+          schedule: "0 */1 * * *"
+          # -- Job timeout
+          timeout: 10m
+        # -- Parameters for `brute detect` job
+        # @default -- *See below for details*
+        bruteDetect:
+          # -- Job schedule in cron format
+          schedule: "* * * * *"
+          # -- Job timeout
+          timeout: 6m
+        # -- Parameters for `sync markers` job
+        # @default -- *See below for details*
+        syncMarkers:
+          # -- Job schedule in cron format
+          schedule: "* * * * *"
+          # -- Job timeout
+          timeout: 1h
 
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 imagePullSecrets: []
