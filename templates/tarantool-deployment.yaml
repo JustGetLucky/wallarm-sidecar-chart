@@ -29,8 +29,8 @@ spec:
     {{- end }}
       initContainers:
         - name: addnode
-        {{- if .Values.postanalytics.addnode.image }}
-          {{- with .Values.postanalytics.addnode.image }}
+        {{- if .Values.postanalytics.helpers.addnode.image }}
+          {{- with .Values.postanalytics.helpers.addnode.image }}
           image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
           {{- end }}
         {{- else }}
@@ -55,13 +55,14 @@ spec:
             name: wallarm
           - mountPath: /var/lib/wallarm-acl
             name: wallarm-acl
-        {{- if .Values.postanalytics.addnode.resources }}
-          resources: {{ toYaml .Values.postanalytics.addnode.resources | nindent 12 }}
+          securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
+        {{- if .Values.postanalytics.helpers.addnode.resources }}
+          resources: {{ toYaml .Values.postanalytics.helpers.addnode.resources | nindent 12 }}
         {{- end }}
 
         - name: exportenv
-        {{- if .Values.postanalytics.exportenv.image }}
-          {{- with .Values.postanalytics.exportenv.image }}
+        {{- if .Values.postanalytics.helpers.exportenv.image }}
+          {{- with .Values.postanalytics.helpers.exportenv.image }}
           image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
           {{- end }}
         {{- else }}
@@ -77,14 +78,15 @@ spec:
           volumeMounts:
           - mountPath: /etc/wallarm
             name: wallarm
-        {{- if .Values.postanalytics.exportenv.resources }}
-          resources: {{ toYaml .Values.postanalytics.exportenv.resources | nindent 12 }}
+          securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
+        {{- if .Values.postanalytics.helpers.exportenv.resources }}
+          resources: {{ toYaml .Values.postanalytics.helpers.exportenv.resources | nindent 12 }}
         {{- end }}
 
       containers:
         - name: cron
-        {{- if .Values.postanalytics.cron.image }}
-          {{- with .Values.postanalytics.cron.image }}
+        {{- if .Values.postanalytics.helpers.cron.image }}
+          {{- with .Values.postanalytics.helpers.cron.image }}
           image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
           {{- end }}
         {{- else }}
@@ -105,8 +107,8 @@ spec:
             subPath: crontab
             readOnly: true
           securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
-        {{- if .Values.postanalytics.cron.resources }}
-          resources: {{ toYaml .Values.postanalytics.cron.resources | nindent 12 }}
+        {{- if .Values.postanalytics.helpers.cron.resources }}
+          resources: {{ toYaml .Values.postanalytics.helpers.cron.resources | nindent 12 }}
         {{- end }}
 
         - name: tarantool
@@ -133,7 +135,7 @@ spec:
         {{- end }}
 
         - name: heartbeat
-        {{- if .Values.postanalytics.heartbeat.image }}
+        {{- if .Values.postanalytics.helpers.heartbeat.image }}
           {{- with .Values.postanalytics.heartbeat.image }}
           image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
           {{- end }}
@@ -149,13 +151,13 @@ spec:
           - mountPath: /etc/wallarm
             name: wallarm
           securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
-        {{- if .Values.postanalytics.heartbeat.resources }}
-          resources: {{ toYaml .Values.postanalytics.heartbeat.resources | nindent 12 }}
+        {{- if .Values.postanalytics.helpers.heartbeat.resources }}
+          resources: {{ toYaml .Values.postanalytics.helpers.heartbeat.resources | nindent 12 }}
         {{- end }}
 
         - name: appstructure
-        {{- if .Values.postanalytics.appstructure.image }}
-          {{- with .Values.postanalytics.appstructure.image }}
+        {{- if .Values.postanalytics.helpers.appstructure.image }}
+          {{- with .Values.postanalytics.helpers.appstructure.image }}
           image: "{{ if .registry}}{{ .registry }}/{{- end}}{{ .image }}:{{ .tag }}"
           {{- end }}
         {{- else }}
@@ -166,17 +168,17 @@ spec:
           - mountPath: /etc/wallarm
             name: wallarm
           securityContext: {{ include "wallarm-sidecar.postanalytics.containerSecurityContext" . | nindent 12 }}
-        {{- if .Values.postanalytics.appstructure.resources }}
-          resources: {{ toYaml .Values.postanalytics.appstructure.resources | nindent 12 }}
+        {{- if .Values.postanalytics.helpers.appstructure.resources }}
+          resources: {{ toYaml .Values.postanalytics.helpers.appstructure.resources | nindent 12 }}
         {{- end }}
     {{- if .Values.nodeSelector }}
-      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
+      nodeSelector: {{ toYaml .Values.postanalytics.nodeSelector | nindent 8 }}
     {{- end }}
     {{- if .Values.tolerations }}
-      tolerations: {{ toYaml .Values.tolerations | nindent 8 }}
+      tolerations: {{ toYaml .Values.postanalytics.tolerations | nindent 8 }}
     {{- end }}
     {{- if .Values.affinity }}
-      affinity: {{ toYaml .Values.affinity | nindent 8 }}
+      affinity: {{ toYaml .Values.postanalytics.affinity | nindent 8 }}
     {{- end }}
       volumes:
         - name: wallarm
