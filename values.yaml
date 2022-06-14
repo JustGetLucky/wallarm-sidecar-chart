@@ -1,4 +1,4 @@
-# -- Wallarm API settings for Post-analytics module and sidecar containers.
+# -- Wallarm API settings for post-analytics module and sidecar containers.
 # @default -- *See below for details*
 wallarmApi:
   # -- Token to authorize in the Wallarm Cloud
@@ -97,7 +97,7 @@ sidecarDefaults:
         # -- Probe timeout in seconds
         timeoutSeconds: 1
       single:
-        # -- Default resources for proxy container in `single` deployment scheme. Applicable only if `sidecarDefaults.deployment.scheme: single`
+        # -- Default resources for `proxy` container in `single` deployment scheme. Applicable only if `sidecarDefaults.deployment.scheme: single`
         resources: {}
         #  requests:
         #    cpu: 200m
@@ -106,7 +106,7 @@ sidecarDefaults:
         #    cpu: 500m
         #    memory: 512Mi
       split:
-        # -- Default resources for proxy container in `split` deployment scheme. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
+        # -- Default resources for `proxy` container in `split` deployment scheme. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
         resources: {}
         #  requests:
         #    cpu: 100m
@@ -117,7 +117,7 @@ sidecarDefaults:
     # -- Default configuration for helper container
     # @default -- *See below for details*
     helper:
-      # -- Resources for helper container. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
+      # -- Resources for `helper` container. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
       resources: {}
       #  requests:
       #    cpu: 100m
@@ -129,7 +129,7 @@ sidecarDefaults:
     # @default -- *See below for details*
     init:
       helper:
-        # -- Resources for init-helper container. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
+        # -- Resources for `init-helper` container. Applicable if `sidecarDefaults.deployment.scheme` is set to `split`
         resources: {}
         #  requests:
         #    cpu: 100m
@@ -138,7 +138,7 @@ sidecarDefaults:
         #    cpu: 300m
         #    memory: 128Mi
       iptables:
-        # -- Resources for init-iptables container. Applicable if `sidecarDefaults.deployment.iptablesEnable` is set to `true`
+        # -- Resources for `init-iptables` container. Applicable if `sidecarDefaults.deployment.iptablesEnable` is set to `true`
         resources: {}
         #  requests:
         #    cpu: 50m
@@ -147,51 +147,8 @@ sidecarDefaults:
         #    cpu: 100m
         #    memory: 64Mi
 
-admissionWebhook:
-  # -- Annotations to be added to admission webhook resources
-  annotations: {}
-  # -- Labels to be added to admission webhook resources
-  labels: {}
-  # -- Admission webhook failure policy
-  failurePolicy: Fail
-  image:
-    # -- Image registry
-    registry: quay.io
-    # -- Image repository
-    image: dmitriev/sidecar-injector
-    # -- Image tag
-    tag: "0.1.0"
-    # -- Image pullPolicy
-    pullPolicy: IfNotPresent
-  # -- Admission webhook listening port
-  port: 8443
-  # -- Replica count of admission webhook deployment
-  replicaCount: 1
-  service:
-    # -- Annotations to be added to admission webhook service
-    annotations: {}
-    type: ClusterIP
-  # -- Resources for admission webhook Pod
-  resources: {}
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
-  patch:
-    image:
-      # -- Image registry
-      registry: k8s.gcr.io
-      # -- Image repository
-      image: ingress-nginx/kube-webhook-certgen
-      # -- Image tag
-      tag: v1.1.1
-      pullPolicy: IfNotPresent
-    # -- Resources for path helper Jobs
-    resources: {}
-    runAsUser: 2000
-    fsGroup: 2000
-
-
+# -- Configuration for post-analytics module
+# @default -- *See below for details*
 postanalytics:
   # -- Annotations to be added to admission webhook resources
   annotations: {}
@@ -199,38 +156,45 @@ postanalytics:
   labels: {}
 
   tarantool:
+    # -- The allocated memory size in GB for Tarantool in-memory storage
     arena: "0.5"
     image:
+      # -- Image registry
       registry: docker.io
+      # -- Image repository
       image: wallarm/ingress-tarantool
-      pullPolicy: IfNotPresent
+      # -- Image tag
       tag: "4.0.3-1"
+      # -- Image pull policy
+      pullPolicy: IfNotPresent
+    # -- Configuration of TCP liveness probe for `tarantool` container
+    # @default -- *See below for details*
     livenessProbe:
       failureThreshold: 3
       initialDelaySeconds: 10
       periodSeconds: 10
       successThreshold: 1
       timeoutSeconds: 1
-    # -- Post-analytics pod. `tarantool` container resources: requests & limits
+    # -- Resources for `tarantool` container
     resources: {}
     service:
       # -- Annotations to be added to Tarantool service
       annotations: {}
   helpers:
     addnode:
-      # -- `addnode` init container resources: requests & limits
+      # -- Resources for `addnode` init container
       resources: {}
     exportenv:
-      # -- `exportenv` init container resources: requests & limits
+      # -- Resources for `exportenv` init container
       resources: {}
     heartbeat:
-      # -- `heartbeat` helper container resources: requests & limits
+      # -- Resources for `heartbeat` helper container
       resources: {}
     appstructure:
-      # -- `appstructure` helper container resources: requests & limits
+      # -- Resources for `appstructure` helper container
       resources: {}
     cron:
-      # -- `cron` helper container resources: requests & limits
+      # -- Resources for `cron` helper container
       resources: {}
       # -- Cron jobs configuration
       # @default -- *See below for details*
@@ -270,9 +234,64 @@ postanalytics:
           schedule: "* * * * *"
           # -- Job timeout
           timeout: 1h
-
+  # -- Node selector for post-analytics pod
   nodeSelector: {}
+  # -- Node tolerations for post-analytics pod
   tolerations: []
+  # -- Node affinity for post-analytics pod
+  affinity: {}
+
+# -- Configuration sidecar injector module
+# @default -- *See below for details*
+admissionWebhook:
+  # -- Annotations to be added to admission webhook resources
+  annotations: {}
+  # -- Labels to be added to admission webhook resources
+  labels: {}
+  # -- Admission webhook failure policy
+  failurePolicy: Fail
+  image:
+    # -- Image registry
+    registry: quay.io
+    # -- Image repository
+    image: dmitriev/sidecar-injector
+    # -- Image tag
+    tag: "0.1.0"
+    # -- Image pullPolicy
+    pullPolicy: IfNotPresent
+  # -- Admission webhook listening port
+  port: 8443
+  # -- Replica count of admission webhook deployment
+  replicaCount: 1
+  service:
+    # -- Annotations to be added to admission webhook service
+    annotations: {}
+    type: ClusterIP
+  # -- Resources for admission webhook Pod
+  resources: {}
+
+  # -- Configuration for certgen and patch helper Jobs
+  # @default -- *See below for details*
+  patch:
+    image:
+      # -- Image registry
+      registry: k8s.gcr.io
+      # -- Image repository
+      image: ingress-nginx/kube-webhook-certgen
+      # -- Image tag
+      tag: v1.1.1
+      # -- Image pull policy
+      pullPolicy: IfNotPresent
+    # -- Resources for certgen and patch helper Jobs
+    resources: {}
+    runAsUser: 2000
+    fsGroup: 2000
+
+  # -- Node selector for webhook pod and helper Jobs
+  nodeSelector: {}
+  # -- Node tolerations for webhook pod and helper Jobs
+  tolerations: []
+  # -- Node affinity for webhook pod and helper Jobs
   affinity: {}
 
 imagePullSecrets: []
