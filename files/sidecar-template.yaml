@@ -48,6 +48,8 @@ volumes:
     - name: WALLARM_APPLICATION
       value: "{{ index .ObjectMeta.Annotations `sidecar.wallarm.io/wallarm-application` }}"
     {{- end  }}
+    - name: WALLARM_ACL_ACCESS_PHASE
+      value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/wallarm-acl-access-phase` .Config.Wallarm.aclAccessPhase }}"
     - name: WALLARM_MODE
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/wallarm-mode` .Config.Wallarm.mode }}"
     - name: WALLARM_MODE_ALLOW_OVERRIDE
