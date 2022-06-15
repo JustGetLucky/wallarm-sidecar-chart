@@ -1,4 +1,4 @@
-# -- Wallarm API settings for post-analytics module and sidecar containers.
+# -- Wallarm API settings for post-analytics module and sidecar containers
 # @default -- *See below for details*
 wallarmApi:
   # -- Token to authorize in the Wallarm Cloud
@@ -7,7 +7,9 @@ wallarmApi:
   host: api.wallarm.com
   # -- Port of Wallarm API service
   port: 443
+  # -- Use SSL to connect to Wallarm API service: `true` or `false`
   useSSL: true
+  # -- Verify CA during connecting to Wallarm API service: `true` or `false`
   caVerify: true
 
 sidecarDefaults:
@@ -47,10 +49,10 @@ sidecarDefaults:
   # -- Default parameters for Nginx configuration of sidecar proxy container. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
   # @default -- *See below for details*
   nginx:
-    # -- Port listening by application container
+    # -- Port listening by application container. This port is used as application container port, if pod has no container ports described
     proxyPassPort: 80
     # -- Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort.
-    listenPort: 8080
+    listenPort: 26001
     # -- Port for Wallarm status, Nginx stats and health check endpoint
     statusPort: 10246
     # -- Path to Nginx status endpoint
@@ -156,7 +158,7 @@ postanalytics:
   labels: {}
 
   tarantool:
-    # -- The allocated memory size in GB for Tarantool in-memory storage
+    # -- The allocated memory size in GB for Tarantool in-memory storage. Detailed recommendations are provided [here](https://docs.wallarm.com/admin-en/configuration-guides/allocate-resources-for-waf-node/)
     arena: "0.5"
     image:
       # -- Image registry
@@ -297,4 +299,3 @@ admissionWebhook:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
