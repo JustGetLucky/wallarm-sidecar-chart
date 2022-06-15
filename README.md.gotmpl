@@ -28,13 +28,13 @@ helm repo update
 ### Install the chart
 EU cloud
 ```
-helm install wallarm-sidecar wallarm/wallarm-sidecar -n wallarm-sidecar --create-namespace --wait --set wallarmApi.token <API_TOKEN>
+helm install wallarm-sidecar wallarm/wallarm-sidecar -n wallarm-sidecar --create-namespace --wait --set wallarmApi.token ${API_TOKEN}
 ```
 US cloud
 ```
-helm install wallarm-sidecar wallarm/wallarm-sidecar -n wallarm-sidecar --create-namespace --wait --set wallarmApi.token <API_TOKEN> --set wallarmApi.host us1.api.wallarm.com
+helm install wallarm-sidecar wallarm/wallarm-sidecar -n wallarm-sidecar --create-namespace --wait --set wallarmApi.token ${API_TOKEN} --set wallarmApi.host us1.api.wallarm.com
 ```
-Where `<API_TOKEN>` is the Wallarm node token
+Where `${API_TOKEN}` is the Wallarm node API token
 
 ## Usage
 ### Sidecar injection logic
@@ -79,6 +79,30 @@ spec:
               containerPort: 80
 ```
 
+### Using deployment schemas
+Sidecar controller provides two different deployment schemas for sidecar resources:
+
+  - Single (default)
+    - `sidecar-init-iptables` init container with iptables (if interception is enabled)
+    - `sidecar-proxy` container with Nginx and helper services
+  - Split (optional)
+    - `sidecar-init-iptables` init container with iptables (if interception is enabled)
+    - `sidecar-init-helper` init container with helper services which aim to register sidecar proxy in Wallarm cloud
+    - `sidecar-proxy` container with Nginx only
+    - `sidecar-helper` container with helper services
+
+In `single` deployment schema - only one additional container will be added into a Pod, apart of optional init container with iptables.
+This container contains Nginx proxy with Wallarm module and helper services. All these processes are run and managed by
+supervisord.
+
+In `split` deployment schema - two additional containers will added into a Pod, apart of init containers. In this schema all helper services
+are moved out of `sidecar-proxy` container, which contains only Nginx service now. Split deployment schema aims to have more granular control
+over resources which consumes by Nginx and helper services.
+
+Deployment schema can be configured in the following ways:
+- on per-pod basis by setting Pod's annotation `sidecar.wallarm.io/sidecar-deployment-scheme` to `"single"` or `"split"`
+- globally by changing default value in Helm chart `.Values.sidecarDefaults.deployment.scheme` to `"single"` (default) or `"split"`
+
 ### Application container port auto-discovery
 In order to redirect and proxying incoming traffic properly, sidecar proxy must be aware about TCP port
 on which application container accepts incoming requests. Application port auto-discovery has the following logic:
@@ -89,10 +113,12 @@ on which application container accepts incoming requests. Application port auto-
 3. If pod has no container ports described, then default setting from `.Values.SidecarDefaults.nginx.proxyPassPort` will be used
 4. If annotation `sidecar.wallarm.io/nginx-proxy-pass-port` is set, then it will take precedence over all options above
 
+*NOTE* If for some reason auto-discovery of application port does not work as expected, just use option 3 or 4 above
+
 ### Inbound traffic interception
-By default Wallarm sidecar intercepts inbound traffic which comes to Pod's IP and application port, then redirects this
+By default Wallarm sidecar intercepts inbound traffic which comes to Pod's IP and application container port, then redirects this
 traffic to sidecar proxy container. Sidecar proxy does the job and then proxies traffic to application container.
-Inbound traffic interception is implemented using `iptables` init container. This default behaviour can be disabled:
+Inbound traffic interception is implemented using init container with `iptables`. This default behaviour can be configured:
 - on per-pod basis by setting Pod's annotation `sidecar.wallarm.io/sidecar-iptables-enable` to `"false"`
 - globally by setting helm chart value `.Values.sidecarDefaults.deployment.iptablesEnable` to `"false"`
 
@@ -144,6 +170,115 @@ spec:
     app: myapp
 ```
 
+### Resource management for sidecar containers
+Requests and limits for injected containers can be configured either globally using Helm chart values or individually on per-pod basis annotations.
+Annotations take precedence over Helm chart values.
+
+| Deployment schema | Container             | Chart value                                       |
+|-------------------|-----------------------|---------------------------------------------------|
+| Single            | sidecar-proxy         | sidecarDefaults.container.proxy.single.resources  |
+| Split, Single     | sidecar-init-iptables | sidecarDefaults.container.init.iptables.resources |
+| Split             | sidecar-init-helpers  | sidecarDefaults.container.init.helpers.resources  |
+| Split             | sidecar-proxy         | sidecarDefaults.container.proxy.split.resources   |
+| Split             | sidecar-helper        | sidecarDefaults.container.helper.resources        |
+
+Example of Helm chart values file for managing resources (requests & limits) globally for both deployment schemes
+
+```yaml
+wallarmApi:
+  token: ${API_TOKEN}
+
+sidecarDefaults:
+  container:
+    proxy:
+      single:
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      split:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+    helper:
+      resources:
+        requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 300m
+            memory: 256Mi
+    init:
+      helper:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 300m
+            memory: 128Mi
+      iptables:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
+```
+
+| Deployment schema | Container             | Annotation                                        |
+|-------------------|-----------------------|---------------------------------------------------|
+| Single, Split     | sidecar-init-iptables | `sidecar.wallarm.io/init-iptables-{cpu,memory,cpu-limit,memory-limit}` |
+| Split             | sidecar-init-helpers  | `sidecar.wallarm.io/init-helpers-{cpu,memory,cpu-limit,memory-limit}` |
+| Single, Split     | sidecar-proxy         | `sidecar.wallarm.io/proxy-{cpu,memory,cpu-limit,memory-limit}`  |
+| Split             | sidecar-helper        | `sidecar.wallarm.io/helper-{cpu,memory,cpu-limit,memory-limit}` |
+
+Example of managing resources (requests & limits) on per-pod basis using default `Single` deployment schema is shown below
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+        wallarm-sidecar: enabled
+      annotations:
+        sidecar.wallarm.io/proxy-cpu: 200m
+        sidecar.wallarm.io/proxy-cpu-limit: 500m
+        sidecar.wallarm.io/proxy-memory: 256Mi
+        sidecar.wallarm.io/proxy-memory-limit: 512Mi
+        sidecar.wallarm.io/init-iptables-cpu: 50m
+        sidecar.wallarm.io/init-iptables-cpu-limit: 100m
+        sidecar.wallarm.io/init-iptables-memory: 32Mi
+        sidecar.wallarm.io/init-iptables-memory-limit: 64Mi
+    spec:
+      containers:
+        - name: application
+          image: mockserver/mockserver
+          env:
+            - name: MOCKSERVER_SERVER_PORT
+              value: 80
+          ports:
+            - name: http
+              containerPort: 80
+```
+
 ### Enable additional Nginx modules
 Docker image of sidecar proxy contains the following additional Nginx modules, which are disabled by default:
 1. ngx_http_auth_digest_module.so
@@ -153,7 +288,6 @@ Docker image of sidecar proxy contains the following additional Nginx modules, w
 5. ngx_http_influxdb_module.so
 6. ngx_http_modsecurity_module.so
 7. ngx_http_opentracing_module.so
-8. ngx_stream_geoip2_module.so
 
 Enabling of these additional modules can be done on per-pod basis by setting Pod's annotation `sidecar.wallarm.io/nginx-extra-modules`.
 The format of annotation's value is JSON list. Example with additional modules enabled is shown below:
@@ -193,14 +327,21 @@ Here is an option to include user provided configuration into Nginx config of si
 Additional configuration can be included on 3 different levels of Nginx config on per-pod basis using annotations.
 The format of annotation's value is JSON list.
 
-| Level of Nginx config  | Pod's annotation                           |
-| ---------------------- | ------------------------------------------ |
-| http                   | `sidecar.wallarm.io/nginx-http-include`    |
-| server                 | `sidecar.wallarm.io/nginx-server-include`  |
-| location               | `sidecar.wallarm.io/nginx-location-include`|
+| Nginx config section   | Annotation                                 | Value type |
+| ---------------------- | ------------------------------------------ |------------|
+| http                   | `sidecar.wallarm.io/nginx-http-include`    | JSON list  |
+| server                 | `sidecar.wallarm.io/nginx-server-include`  | JSON list  |
+| location               | `sidecar.wallarm.io/nginx-location-include`| JSON list  |
 
-Providing additional configuration files achieves by using Volumes and Volumes mounts. Below is an example with
-additional user provided configuration file which includes on `server` level of Nginx config:
+Providing additional configuration files into sidecar proxy container achieves by using extra Volumes and Volumes mounts.
+
+| Item          |  Annotation                                    | Value type  |
+|---------------|------------------------------------------------|-------------|
+| Volumes       | `sidecar.wallarm.io/proxy-extra-volumes`       | JSON object |
+| Volume mounts | `sidecar.wallarm.io/proxy-extra-volume-mounts` | JSON object |
+
+Below is an example with additional user provided configuration file which includes on `server` level into Nginx config.
+This example assumes that config map `nginx-http-extra-config` was created in advance and contains valid Nginx configuration directives.
 
 ```yaml
 apiVersion: apps/v1
@@ -235,4 +376,3 @@ spec:
 ```
 
 {{ template "chart.valuesSection" . }}
-{{ template "helm-docs.versionFooter" . }}

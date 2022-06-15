@@ -18,7 +18,7 @@ sidecarDefaults:
   wallarm:
     # -- Wallarm application ID
     # application: 1
-    # -- Increases the Wallarm node performance by omitting the attack search stage during the analysis of requests from blacklisted IPs: `on` of `off`
+    # -- Increases the Wallarm node performance by omitting the attack search stage during the analysis of requests from blacklisted IPs: `on` or `off`
     aclAccessPhase: "off"
     # -- Wallarm mode: `monitoring, `block` or `off`
     mode: monitoring
