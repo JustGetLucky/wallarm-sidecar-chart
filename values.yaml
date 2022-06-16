@@ -260,11 +260,15 @@ admissionWebhook:
     # -- Image repository
     image: dmitriev/sidecar-injector
     # -- Image tag
-    tag: "0.1.0"
+    tag: "0.1.3"
     # -- Image pullPolicy
     pullPolicy: IfNotPresent
   # -- Admission webhook listening port
   port: 8443
+  # -- Path to webhook injection endpoint
+  injectPath: /inject
+  # -- Path of webhook health check endpoint
+  healthPath: /healthz
   # -- Replica count of admission webhook deployment
   replicaCount: 1
   service:

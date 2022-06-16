@@ -29,7 +29,7 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace | quote }}
         name: {{ include "wallarm-sidecar.name" . }}-webhook
-        path: /inject
+        path: {{ .Values.admissionWebhook.injectPath }}
     {{- if .Values.admissionWebhook.timeoutSeconds }}
     timeoutSeconds: {{ .Values.admissionWebhook.timeoutSeconds }}
     {{- end }}

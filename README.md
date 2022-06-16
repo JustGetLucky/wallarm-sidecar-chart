@@ -383,10 +383,12 @@ spec:
 | admissionWebhook.affinity | object | `{}` | Node affinity for webhook pod and helper Jobs |
 | admissionWebhook.annotations | object | `{}` | Annotations to be added to admission webhook resources |
 | admissionWebhook.failurePolicy | string | `"Fail"` | Admission webhook failure policy |
+| admissionWebhook.healthPath | string | `"/healthz"` | Path of webhook health check endpoint |
 | admissionWebhook.image.image | string | `"dmitriev/sidecar-injector"` | Image repository |
 | admissionWebhook.image.pullPolicy | string | `"IfNotPresent"` | Image pullPolicy |
 | admissionWebhook.image.registry | string | `"quay.io"` | Image registry |
-| admissionWebhook.image.tag | string | `"0.1.0"` | Image tag |
+| admissionWebhook.image.tag | string | `"0.1.3"` | Image tag |
+| admissionWebhook.injectPath | string | `"/inject"` | Path to webhook injection endpoint |
 | admissionWebhook.labels | object | `{}` | Labels to be added to admission webhook resources |
 | admissionWebhook.nodeSelector | object | `{}` | Node selector for webhook pod and helper Jobs |
 | admissionWebhook.patch | object | *See below for details* | Configuration for certgen and patch helper Jobs |

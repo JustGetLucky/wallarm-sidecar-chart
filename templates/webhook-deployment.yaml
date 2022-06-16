@@ -42,6 +42,8 @@ spec:
           - -sidecar-config=/etc/webhook/config/sidecar-config.yaml
           - -tls-cert=/usr/local/certificates/cert
           - -tls-key=/usr/local/certificates/key
+          - -webhook-inject-path={{ .Values.admissionWebhook.injectPath }}
+          - -webhook-health-path={{ .Values.admissionWebhook.healthPath }}
           volumeMounts:
             - name: webhook-config
               mountPath: /etc/webhook/config
@@ -53,6 +55,26 @@ spec:
             - name: webhook
               containerPort: {{ .Values.admissionWebhook.port }}
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.admissionWebhook.healthPath }}
+              port: {{ .Values.admissionWebhook.port }}
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.admissionWebhook.healthPath }}
+              port: {{ .Values.admissionWebhook.port }}
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
           {{- if .Values.admissionWebhook.resources }}
           resources: {{ toYaml .Values.admissionWebhook.resources | nindent 12 }}
           {{- end }}
