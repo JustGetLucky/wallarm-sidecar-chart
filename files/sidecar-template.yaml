@@ -69,7 +69,7 @@ volumes:
     - name: NGINX_LISTEN_PORT
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/nginx-listen-port` .Config.Nginx.listenPort }}"
     - name: NGINX_PROXY_PASS_PORT
-      value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/nginx-proxy-pass-port` .Config.Nginx.proxyPassPort }}"
+      value: "{{ template `applicationPort` . }}"
     - name: NGINX_STATUS_PORT
       value: "{{ getAnnotation .ObjectMeta `sidecar.wallarm.io/nginx-status-port` .Config.Nginx.statusPort }}"
     - name: NGINX_STATUS_PATH
@@ -214,9 +214,9 @@ volumes:
         fieldRef:
           fieldPath: status.podIP
     - name: APP_PORT
-      value: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/nginx-proxy-pass-port" .Config.Nginx.proxyPassPort }}
+      value: "{{ template `applicationPort` . }}"
     - name: NGINX_PORT
-      value: {{ getAnnotation .ObjectMeta "sidecar.wallarm.io/nginx-listen-port" .Config.Nginx.listenPort }}
+      value: "{{ getAnnotation .ObjectMeta "sidecar.wallarm.io/nginx-listen-port" .Config.Nginx.listenPort }}"
   command: ["iptables"]
   args: ["-t", "nat", "-A", "PREROUTING", "-p", "tcp", "-d", "$(POD_IP)", "--dport", "$(APP_PORT)", "-j", "REDIRECT", "--to-ports", "$(NGINX_PORT)"]
   securityContext:
@@ -229,6 +229,14 @@ volumes:
   resources:
 {{ template "initIptablesContainer.resources" . }}
 {{ end }}
+
+{{- define "applicationPort" }}
+  {{- if (isSet .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-proxy-pass-port") }}
+    {{- index .ObjectMeta.Annotations "sidecar.wallarm.io/nginx-proxy-pass-port" }}
+  {{- else }}
+    {{- getAppPort .PodSpec .Config.Nginx.proxyPassPort }}
+  {{- end }}
+{{- end }}
 
 {{- define "wallarmApiVariables" }}
     - name: WALLARM_API_HOST
