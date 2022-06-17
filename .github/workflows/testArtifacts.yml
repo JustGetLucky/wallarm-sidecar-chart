@@ -9,8 +9,11 @@ on:
 #    branches: [ "main" ]
 #
 #
-
   workflow_dispatch:
+
+env:
+  KUBEVAL_SCHEMA_LOCATION: 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/'
+
 
 jobs:
   lint:
@@ -34,4 +37,6 @@ jobs:
         uses: instrumenta/kubeval-action@master
         with:
           files: result.yaml
+          version: 1.21.5
+          ignore_missing_schemas: false
 
