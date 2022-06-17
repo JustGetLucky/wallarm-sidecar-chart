@@ -7,28 +7,56 @@ on:
       - '**'
 #  pull_request:
 #    branches: [ "main" ]
-
+#
+#
   workflow_dispatch:
+
+env:
+  KUBEVAL_SCHEMA_LOCATION: 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/'
 
 jobs:
   lint:
-    name: Test artifacts
+    name: Helm lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Helm lint
-        uses: WyriHaximus/github-action-helm3@v2
-        run: helm lint ./.helm/app/
+        run: |
+          helm version
+          helm lint . --debug
+
+  kebeval:
+    name: Kubeval
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # 1.19-1.24
+        kubeVersion:
+          - 1.19.1
+          - 1.19.16
+          - 1.20.1
+          - 1.20.15
+          - 1.21.1
+          - 1.21.14
+          - 1.22.1
+          - 1.22.11
+          - 1.23.1
+          - 1.23.8
+          - 1.24.1
+          - 1.24.2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Helm template
-        uses: WyriHaximus/github-action-helm3@v2
-        with:
-          exec: helm template . > result.yaml --debug
-        
+        run: helm template . > result-${{ matrix.kubeVersion }}.yaml --kube-version ${{ matrix.kubeVersion }} --debug
+
       - name: Kubeval
         uses: instrumenta/kubeval-action@master
         with:
-          files: result.yaml
-
+          files: result-${{ matrix.kubeVersion }}.yaml
+          version: ${{ matrix.kubeVersion }}
+          ignore_missing_schemas: false
