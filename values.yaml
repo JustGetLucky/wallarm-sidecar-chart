@@ -16,10 +16,6 @@ sidecarDefaults:
   # -- Wallarm node configuration. Parameters in this section can be overwritten individually for each pod using its `metadata.annotations`
   # @default -- *See below for details*
   wallarm:
-    # -- Wallarm application ID
-    # application: 1
-    # -- Increases the Wallarm node performance by omitting the attack search stage during the analysis of requests from blacklisted IPs: `on` or `off`
-    aclAccessPhase: "off"
     # -- Wallarm mode: `monitoring, `block` or `off`
     mode: monitoring
     # -- Manages the ability to override the wallarm_mode values via filtering in the Cloud (custom ruleset): `on`, `off` or `strict`
@@ -51,28 +47,28 @@ sidecarDefaults:
   # -- Default parameters for Nginx configuration of sidecar proxy container. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
   # @default -- *See below for details*
   nginx:
-    # -- Port listening by application container. This port is used as application container port, if pod has no container ports described
+    # -- Port listening by application container. This port is used as application container port, if pod has no exposed ports for application container.
     proxyPassPort: 80
-    # -- Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort.
+    # -- Port listening by sidecar proxy container. This port is reserved for using by Wallarm sidecar, can't be the same as nginx.proxyPassPort.
     listenPort: 26001
-    # -- Port for Wallarm status, Nginx stats and health check endpoint
+    # -- Port for Wallarm status, Nginx stats and health check endpoints
     statusPort: 10246
     # -- Path to Nginx status endpoint
     statusPath: /status
     # -- Path to Nginx health check endpoint
     healthPath: /health
-    # -- Path to Wallarm status endpoint, JSON format
+    # -- Path to Wallarm status endpoint, status provides in JSON format
     wallarmStatusPath: /wallarm-status
     # -- Port for Wallarm metrics endpoint
     wallarmMetricsPort: 18080
-    # -- Port to Wallarm metrics endpoint. Metrics provide in Prometheus format.
+    # -- Port to Wallarm metrics endpoint. Metrics provide in Prometheus format
     wallarmMetricsPath: /wallarm-metrics
   # Default sidecar deployment options. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
   # @default -- *See below for details*
   deployment:
     # -- Sidecar deployment scheme: `single` or `split`
     scheme: single
-    # -- Enable or disable `iptables` init container for port redirection
+    # -- Enable or disable `iptables` init container for port redirection: `true` or `false`
     iptablesEnable: true
   # Default configuration for sidecar containers. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations`
   # @default -- *See below for details*

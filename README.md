@@ -375,6 +375,72 @@ spec:
               containerPort: 80
 ```
 
+## List of annotations
+
+All annotations below are specified without prefix `sidecar.wallarm.io/`, to use them properly just add this prefix, e.g. `sidecar.wallarm.io/wallarm-mode`
+
+### Sidecar deployment settings
+
+| Annotation                  | Chart value                                       | Description                                                      |
+|-----------------------------|---------------------------------------------------|------------------------------------------------------------------|
+| sidecar-deployment-scheme   | .Values.sidecarDefaults.deployment.scheme         | Sidecar deployment scheme: `single` or `split`                   |
+| sidecar-iptables-enable     | .Values.sidecarDefaults.deployment.iptablesEnable | Enable or disable `iptables` init container for port redirection: `true` or `false`|
+
+### Wallarm filtering node settings
+The list of settings specified below is available at the moment. More settings will be included in the future version.
+
+| Annotation                           | Chart value                                                | Description                                                      |
+|--------------------------------------|------------------------------------------------------------|------------------------------------------------------------------|
+| wallarm-application                  | NA                                                         | The ID of Wallarm application (optional)                         |
+| wallarm-mode                         | .Values.sidecarDefaults.wallarm.mode                       | Wallarm mode: `monitoring, `block` or `off`                      |
+| wallarm-mode-allow-override          | .Values.sidecarDefaults.wallarm.modeAllowOverride          | Manages the ability to override the wallarm_mode values via filtering in the Cloud (custom ruleset): `on`, `off` or `strict` |
+| wallarm-parse-response               | .Values.sidecarDefaults.wallarm.parseResponse              | Whether to analyze the application responses for attacks: `on` or `off`                   |
+| wallarm-parse-websocket              | .Values.sidecarDefaults.wallarm.parseWebsocket             | Whether to analyze WebSocket's messages for attacks: `on` or `off`                        |
+| wallarm-unpack-response              | .Values.sidecarDefaults.wallarm.unpackResponse             | Whether to decompress compressed data returned in the application response: `on` or `off` |
+| wallarm-upstream-connect-attempts    | .Values.sidecarDefaults.wallarm.upstream.connectAttempts   | Defines the number of immediate reconnects to the Tarantool or Wallarm API                |
+| wallarm-upstream-reconnect-interval  | .Values.sidecarDefaults.wallarm.upstream.reconnectInterval | Defines the interval between attempts to reconnect to the Tarantool or Wallarm API        |
+
+### NGINX settings
+
+| Annotation                  | Chart value                                      | Description                                                      |
+|-----------------------------|--------------------------------------------------|------------------------------------------------------------------|
+| nginx-proxy-pass-port       | .Values.sidecarDefaults.nginx.proxyPassPort      | Port listening by application container. This port is used as application container port, if pod has no exposed ports for application container. Refer `Application container port auto-discovery` section for details |
+| nginx-listen-port           | .Values.sidecarDefaults.nginx.listenPort         | Port listening by sidecar proxy container. This port is reserved for using by Wallarm sidecar, can't be the same as nginx.proxyPassPort. |
+| nginx-status-port           | .Values.sidecarDefaults.nginx.statusPort         | Port for Wallarm status, Nginx stats and health check endpoints |
+| nginx-status-path           | .Values.sidecarDefaults.nginx.statusPath         | Path to Nginx status endpoint |
+| nginx-health-path           | .Values.sidecarDefaults.nginx.healthPath         | Path to Nginx health check endpoint |
+| nginx-wallarm-status-path   | .Values.sidecarDefaults.nginx.wallarmStatusPath  | Path to Wallarm status endpoint, status provides in JSON format |
+| nginx-wallarm-metrics-port  | .Values.sidecarDefaults.nginx.wallarmMetricsPort | Port for Wallarm metrics endpoint |
+| nginx-wallarm-metrics-path  | .Values.sidecarDefaults.nginx.wallarmMetricsPath | Port to Wallarm metrics endpoint. Metrics provide in Prometheus format |
+| nginx-http-include          | NA                                               | JSON list of full paths to additional config files which should be included into NGINX configuration.Refer "Using additional user provided Nginx configuration" for details |
+| nginx-server-include        | NA                                               | Same as above |
+| nginx-location-include      | NA                                               | Same as above |
+| nginx-extra-modules         | NA                                               | JSON list of NGINX modules to enable. Refer "Enable additional Nginx modules" section for details |
+
+### Sidecar containers settings
+
+| Annotation                  | Chart value                                                               | Description                               |
+|-----------------------------|---------------------------------------------------------------------------|-------------------------------------------|
+| proxy-extra-volumes         | NA                                                                        | User volumes to be added to the Pod (JSON object). Example: `[{"name":"volumeName","configMap":{“name":"something"}}]`                  |
+| proxy-extra-volume-mounts   | NA                                                                        | User volume mounts to be added to the `proxy` container (JSON object). Example:`[{"name":"something","mountPath":"/some/thing"}]` |
+| proxy-image                 | .Values.sidecarDefaults.container.proxy.image.image                       | Image for all containers in sidecar scheme     |
+| proxy-cpu                   | .Values.sidecarDefaults.container.proxy.*.resources.requests.cpu          | Requested CPU for `proxy` container            |
+| proxy-memory                | .Values.sidecarDefaults.container.proxy.*.resources.requests.memory       | Requested memory for `proxy` container         |
+| proxy-cpu-limit             | .Values.sidecarDefaults.container.proxy.*.resources.limits.cpu            | CPU limit for `proxy` container                |
+| proxy-memory-limit          | .Values.sidecarDefaults.container.proxy.*.resources.limits.memory         | Memory limit for `proxy` container             |
+| helper-cpu                  | .Values.sidecarDefaults.container.helper.resources.requests.cpu           | Requested CPU for `helper` container           |
+| helper-memory               | .Values.sidecarDefaults.container.helper.resources.requests.memory        | Requested memory for `helper` container        |
+| helper-cpu-limit            | .Values.sidecarDefaults.container.helper.resources.limits.cpu             | CPU limit for `helper` container               |
+| helper-memory-limit         | .Values.sidecarDefaults.container.helper.resources.limits.memory          | Memory limit for `helper` container            |
+| init-iptables-cpu           | .Values.sidecarDefaults.container.init.iptables.resources.requests.cpu    | Requested CPU for `init-iptables` container    |
+| init-iptables-memory        | .Values.sidecarDefaults.container.init.iptables.resources.requests.memory | Requested memory for `init-iptables` container |
+| init-iptables-cpu-limit     | .Values.sidecarDefaults.container.init.iptables.resources.limits.cpu      | CPU limit for `init-iptables` container        |
+| init-iptables-memory-limit  | .Values.sidecarDefaults.container.init.iptables.resources.limits.memory   | Memory limit for `init-iptables` container     |
+| init-helper-cpu             | .Values.sidecarDefaults.container.init.helper.resources.requests.cpu      | Requested CPU for `init-helper` container      |
+| init-helper-memory          | .Values.sidecarDefaults.container.init.helper.resources.requests.memory   | Requested memory for `init-helper` container   |
+| init-helper-cpu-limit       | .Values.sidecarDefaults.container.init.helper.resources.limits.cpu        | CPU limit for `init-helper` container          |
+| init-helper-memory-limit    | .Values.sidecarDefaults.container.init.helper.resources.limits.memory     | Memory limit for `init-helper` container       |
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -457,19 +523,18 @@ spec:
 | sidecarDefaults.container.proxy.livenessProbeEnable | bool | `true` | Enable httpGet liveness probe to path "sidecarDefaults.nginx.healthPath" |
 | sidecarDefaults.container.proxy.single.resources | object | `{}` | Default resources for `proxy` container in `single` deployment scheme. Applicable only if `sidecarDefaults.deployment.scheme: single` |
 | sidecarDefaults.container.proxy.split.resources | object | `{}` | Default resources for `proxy` container in `split` deployment scheme. Applicable if `sidecarDefaults.deployment.scheme` is set to `split` |
-| sidecarDefaults.deployment.iptablesEnable | bool | `true` | Enable or disable `iptables` init container for port redirection |
+| sidecarDefaults.deployment.iptablesEnable | bool | `true` | Enable or disable `iptables` init container for port redirection: `true` or `false` |
 | sidecarDefaults.deployment.scheme | string | `"single"` | Sidecar deployment scheme: `single` or `split` |
 | sidecarDefaults.nginx | object | *See below for details* | Default parameters for Nginx configuration of sidecar proxy container. Parameters in this section can be overwritten individually for each pod using its `.metadata.annotations` |
 | sidecarDefaults.nginx.healthPath | string | `"/health"` | Path to Nginx health check endpoint |
-| sidecarDefaults.nginx.listenPort | int | `26001` | Port listening by sidecar proxy container. Can't be the same as nginx.proxyPassPort. |
-| sidecarDefaults.nginx.proxyPassPort | int | `80` | Port listening by application container. This port is used as application container port, if pod has no container ports described |
+| sidecarDefaults.nginx.listenPort | int | `26001` | Port listening by sidecar proxy container. This port is reserved for using by Wallarm sidecar, can't be the same as nginx.proxyPassPort. |
+| sidecarDefaults.nginx.proxyPassPort | int | `80` | Port listening by application container. This port is used as application container port, if pod has no exposed ports for application container. |
 | sidecarDefaults.nginx.statusPath | string | `"/status"` | Path to Nginx status endpoint |
-| sidecarDefaults.nginx.statusPort | int | `10246` | Port for Wallarm status, Nginx stats and health check endpoint |
-| sidecarDefaults.nginx.wallarmMetricsPath | string | `"/wallarm-metrics"` | Port to Wallarm metrics endpoint. Metrics provide in Prometheus format. |
+| sidecarDefaults.nginx.statusPort | int | `10246` | Port for Wallarm status, Nginx stats and health check endpoints |
+| sidecarDefaults.nginx.wallarmMetricsPath | string | `"/wallarm-metrics"` | Port to Wallarm metrics endpoint. Metrics provide in Prometheus format |
 | sidecarDefaults.nginx.wallarmMetricsPort | int | `18080` | Port for Wallarm metrics endpoint |
-| sidecarDefaults.nginx.wallarmStatusPath | string | `"/wallarm-status"` | Path to Wallarm status endpoint, JSON format |
+| sidecarDefaults.nginx.wallarmStatusPath | string | `"/wallarm-status"` | Path to Wallarm status endpoint, status provides in JSON format |
 | sidecarDefaults.wallarm | object | *See below for details* | Wallarm node configuration. Parameters in this section can be overwritten individually for each pod using its `metadata.annotations` |
-| sidecarDefaults.wallarm.aclAccessPhase | string | `"off"` | Increases the Wallarm node performance by omitting the attack search stage during the analysis of requests from blacklisted IPs: `on` or `off` |
 | sidecarDefaults.wallarm.mode | string | `"monitoring"` | Wallarm mode: `monitoring, `block` or `off` |
 | sidecarDefaults.wallarm.modeAllowOverride | string | `"on"` | Manages the ability to override the wallarm_mode values via filtering in the Cloud (custom ruleset): `on`, `off` or `strict` |
 | sidecarDefaults.wallarm.parseResponse | string | `"on"` | Whether to analyze the application responses for attacks: `on` or `off` |
