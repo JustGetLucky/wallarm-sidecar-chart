@@ -40,7 +40,7 @@ spec:
           command:
           - sh
           - -c
-        {{- if eq .Values.wallarmApi.fallback "on"}}
+        {{- if eq (default .Values.wallarmApi.fallback "off") "on"}}
         {{ print  "- /opt/wallarm/ruby/usr/share/wallarm-common/synccloud --one-time && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists --one-time -l STDOUT && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists-source --one-time -l STDOUT || true" | indent 2}}
         {{- else }}
         {{ print  "- /opt/wallarm/ruby/usr/share/wallarm-common/synccloud --one-time && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists --one-time -l STDOUT && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists-source --one-time -l STDOUT" | indent 2}}
