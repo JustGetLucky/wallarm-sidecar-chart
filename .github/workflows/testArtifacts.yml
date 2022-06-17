@@ -21,7 +21,7 @@ jobs:
       - name: Helm lint
         uses: WyriHaximus/github-action-helm3@v2
         with:
-          exec: helm upgrade lint .
+          exec: helm lint .
 
       - name: Helm template
         uses: WyriHaximus/github-action-helm3@v2
