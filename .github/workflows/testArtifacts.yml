@@ -37,6 +37,6 @@ jobs:
         uses: instrumenta/kubeval-action@master
         with:
           files: result.yaml
-          version: 1.21.5
+          version: 1.21.5555
           ignore_missing_schemas: false
 
