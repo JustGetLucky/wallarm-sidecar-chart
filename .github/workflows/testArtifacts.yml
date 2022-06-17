@@ -20,7 +20,7 @@ jobs:
 
       - name: Helm lint
         uses: WyriHaximus/github-action-helm3@v2
-        run: ls -laht && helm lint .
+        run: helm lint ./.helm/app/
 
       - name: Helm template
         uses: WyriHaximus/github-action-helm3@v2
