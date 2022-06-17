@@ -2,7 +2,7 @@ name: Test artifacts
 
 on:
   push:
-    branches: [ "main", "helm-chart" ]
+    branches: [ "main", "helm-chart", "github-actions" ]
     tags:
       - '**'
 #  pull_request:
@@ -20,7 +20,8 @@ jobs:
 
       - name: Helm lint
         uses: WyriHaximus/github-action-helm3@v2
-        run: helm lint ./.helm/app/
+        with:
+          exec: helm lint ./.helm/app/
 
       - name: Helm template
         uses: WyriHaximus/github-action-helm3@v2
