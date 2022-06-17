@@ -44,7 +44,7 @@ jobs:
       - name: Helm template
         uses: WyriHaximus/github-action-helm3@v2
         with:
-          exec: helm template . > result-${{ matrix.kubeVersion }}.yaml --debug
+          exec: helm template . > result-${{ matrix.kubeVersion }}.yaml --kube-version ${{ matrix.kubeVersion }} --debug
 
       - name: Kubeval
         uses: instrumenta/kubeval-action@master
