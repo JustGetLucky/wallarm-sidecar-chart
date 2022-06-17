@@ -20,8 +20,7 @@ jobs:
 
       - name: Helm lint
         uses: WyriHaximus/github-action-helm3@v2
-        with:
-          exec: ls -laht && helm lint .
+        run: ls -laht && helm lint .
 
       - name: Helm template
         uses: WyriHaximus/github-action-helm3@v2
