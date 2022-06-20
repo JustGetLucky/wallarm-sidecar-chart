@@ -51,7 +51,7 @@ jobs:
         run: |
           set -x
           kubectl apply -k test/app/base
-          kubectl wait --for=condition=Ready pods --all -n default || true
+          kubectl wait --for=condition=Ready pods --all --timeout=60s -n default
           kubectl get all -n default
 
       - name: X
