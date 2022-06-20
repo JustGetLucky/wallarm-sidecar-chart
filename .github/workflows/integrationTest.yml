@@ -50,9 +50,9 @@ jobs:
 
       - name: Deploy test application
         run: |
-          echo "/nDeploying app ..."
+          echo -e "\nDeploying app ..."
           kubectl apply -k test/app/base
-          echo "/nWait for pods to be rady ..."
+          echo -e "\nWait for pods to be rady ..."
           kubectl wait --for=condition=Ready pods --all -n default
-          echo "/nApp resources deployed:"
+          echo -e "\nApp resources deployed:"
           kubectl get all -n default
