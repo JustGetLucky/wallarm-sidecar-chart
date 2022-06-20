@@ -1,4 +1,4 @@
-name: Test artifacts
+name: Integration test
 
 on:
   push:
@@ -26,6 +26,7 @@ jobs:
         uses: engineerd/setup-kind@v0.5.0
         with:
           verbosity: 3
+          wait: 120
 
       - name: Check Kind cluster
         run: |
@@ -37,4 +38,9 @@ jobs:
       - name: Helm install
         run: |
           helm version
-           helm install wallarm-sidecar . --namespase wallarm-sidecar --create-namespace --debug
+           helm install wallarm-sidecar . --namespace wallarm-sidecar --create-namespace --debug
+
+      - name: Check Helm installation
+        run: |
+          helm list --namespace wallarm-sidecar
+          kebectl get all --namespace wallarm-sidecar -o yaml
