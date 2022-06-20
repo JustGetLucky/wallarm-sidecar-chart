@@ -50,9 +50,10 @@ jobs:
           kubectl get all --namespace wallarm-sidecar
 
       - name: Deploy test application
-        run: kubectl apply -k test/app/base
-
-      - name: Wait for test application
         run: |
+          echo "Deploying app ..."
+          kubectl apply -k test/app/base
+          echo "Wait for pods to be rady ..."
           kubectl wait --for=condition=Ready pods --all -n default
+          echo "App resources deployed:"
           kubectl get all -n default
