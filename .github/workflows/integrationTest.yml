@@ -11,8 +11,6 @@ on:
 #
   workflow_dispatch:
 
-env:
-  KUBEVAL_SCHEMA_LOCATION: 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/'
 
 jobs:
   lint:
@@ -52,4 +50,4 @@ jobs:
       - name: Check Helm installation
         run: |
           helm list --namespace wallarm-sidecar
-          kebectl get all --namespace wallarm-sidecar -o yaml
+          kubectl get all --namespace wallarm-sidecar -o yaml
