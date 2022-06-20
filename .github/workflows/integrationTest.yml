@@ -35,10 +35,19 @@ jobs:
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
 
+      - name: Wait for all system pods will be ready
+        run: kubectl wait --for=condition=Ready pods --all -n kube-system
+
       - name: Helm install
         run: |
           helm version
-           helm install wallarm-sidecar . --namespace wallarm-sidecar --create-namespace --wait --debug
+          helm install wallarm-sidecar . \
+          --set wallarmApi.host=audit.api.wallarm.com \
+          --set wallarmApi.token=${{ secrets.WALLARM_TOKEN }} \
+          --namespace wallarm-sidecar \
+          --create-namespace \
+          --wait \
+          --debug
 
       - name: Check Helm installation
         run: |
