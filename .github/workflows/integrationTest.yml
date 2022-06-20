@@ -33,7 +33,7 @@ jobs:
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
 
-      - name: Helm install
+      - name: Install Helm chart
         run: |
           helm version
           helm install wallarm-sidecar . \
@@ -48,3 +48,11 @@ jobs:
         run: |
           helm list --namespace wallarm-sidecar
           kubectl get all --namespace wallarm-sidecar
+
+      - name: Deploy test application
+        run: kubectl apply -k test/app/base
+
+      - name: Wait for test application
+        run: |
+          kubectl wait --for=condition=Ready pods --all -n default
+          kubectl get all -n default

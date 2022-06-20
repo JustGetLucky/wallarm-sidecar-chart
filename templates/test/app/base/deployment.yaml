@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummy-app
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummy-app
+  template:
+    metadata:
+      labels:
+        app: dummy-app
+        wallarm-sidecar: enabled
+      annotations:
+        sidecar.wallarm.io/wallarm-mode: block
+        sidecar.wallarm.io/sidecar-iptables-enable: "true"
+        sidecar.wallarm.io/sidecar-deployment-scheme: single
+    spec:
+      containers:
+        - name: application
+          image: mockserver/mockserver
+          env:
+            - name: MOCKSERVER_SERVER_PORT
+              value: 80
+          ports:
+            - name: http
+              containerPort: 80
