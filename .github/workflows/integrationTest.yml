@@ -30,7 +30,6 @@ jobs:
         run: |
           kubectl cluster-info
           kubectl wait --for=condition=Ready pods --all -n kube-system
-          kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
 
