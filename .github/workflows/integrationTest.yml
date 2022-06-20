@@ -29,12 +29,10 @@ jobs:
       - name: Check Kind cluster
         run: |
           kubectl cluster-info
+          kubectl wait --for=condition=Ready pods --all -n kube-system
           kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
-
-      - name: Wait for all system pods will be ready
-        run: kubectl wait --for=condition=Ready pods --all -n kube-system
 
       - name: Helm install
         run: |
@@ -50,4 +48,4 @@ jobs:
       - name: Check Helm installation
         run: |
           helm list --namespace wallarm-sidecar
-          kubectl get all --namespace wallarm-sidecar -o yaml
+          kubectl get all --namespace wallarm-sidecar
