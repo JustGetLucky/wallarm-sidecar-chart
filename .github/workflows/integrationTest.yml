@@ -23,7 +23,7 @@ jobs:
       - name: Prepare Kind cluster
         uses: helm/kind-action@v1.3.0
         with:
-          verbosity: 3
+          verbosity: "0"
           wait: "240s"
 
       - name: Check Kind cluster
