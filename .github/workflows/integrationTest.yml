@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Prepare Kind cluster
-        uses: engineerd/setup-kind@v0.5.0
+        uses: helm/kind-action@v1.3.0
         with:
           verbosity: 3
           wait: "240s"
