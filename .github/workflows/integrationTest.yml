@@ -1,0 +1,40 @@
+name: Test artifacts
+
+on:
+  push:
+    branches: [ "main", "helm-chart", "github-actions" ]
+    tags:
+      - '**'
+#  pull_request:
+#    branches: [ "main" ]
+#
+#
+  workflow_dispatch:
+
+env:
+  KUBEVAL_SCHEMA_LOCATION: 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/'
+
+jobs:
+  lint:
+    name: Integration test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Prepare Kind cluster
+        uses: engineerd/setup-kind@v0.5.0
+        with:
+          verbosity: 3
+
+      - name: Check Kind cluster
+        run: |
+          kubectl cluster-info
+          kubectl get pods -n kube-system
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}
+
+      - name: Helm install
+        run: |
+          helm version
+           helm install wallarm-sidecar . --namespase wallarm-sidecar --create-namespace --debug
