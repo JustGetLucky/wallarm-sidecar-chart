@@ -41,8 +41,7 @@ jobs:
           --set wallarmApi.token=${{ secrets.WALLARM_TOKEN }} \
           --namespace wallarm-sidecar \
           --create-namespace \
-          --wait \
-          --debug
+          --wait
 
       - name: Check Helm installation
         run: |
@@ -51,9 +50,9 @@ jobs:
 
       - name: Deploy test application
         run: |
-          echo "Deploying app ..."
+          echo "\nDeploying app ..."
           kubectl apply -k test/app/base
-          echo "Wait for pods to be rady ..."
+          echo "\nWait for pods to be rady ..."
           kubectl wait --for=condition=Ready pods --all -n default
-          echo "App resources deployed:"
+          echo "\nApp resources deployed:"
           kubectl get all -n default
