@@ -49,13 +49,9 @@ jobs:
 
       - name: Deploy test application
         run: |
-          echo -e "\nDeploying app ..."
+          set -x
           kubectl apply -k test/app/base
-
-          echo -e "\nWait for pods to be ready ..."
-          kubectl wait --for=condition=Ready pods --all -n default
-
-          echo -e "\nApp resources deployed:"
+          kubectl wait --for=condition=Ready pods --all -n default || true
           kubectl get all -n default
 
       - name: X
