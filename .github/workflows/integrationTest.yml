@@ -25,6 +25,7 @@ jobs:
         with:
           verbosity: "0"
           wait: "240s"
+          config: ./test/kind.yaml
 
       - name: Check Kind cluster
         run: |
@@ -35,6 +36,7 @@ jobs:
 
       - name: Install Helm chart
         run: |
+          set -x
           helm version
           helm install wallarm-sidecar . \
           --set wallarmApi.host=audit.api.wallarm.com \
@@ -42,9 +44,6 @@ jobs:
           --namespace wallarm-sidecar \
           --create-namespace \
           --wait
-
-      - name: Check Helm installation
-        run: |
           helm list --namespace wallarm-sidecar
           kubectl get all --namespace wallarm-sidecar
 
@@ -52,7 +51,12 @@ jobs:
         run: |
           echo -e "\nDeploying app ..."
           kubectl apply -k test/app/base
-          echo -e "\nWait for pods to be rady ..."
+
+          echo -e "\nWait for pods to be ready ..."
           kubectl wait --for=condition=Ready pods --all -n default
+
           echo -e "\nApp resources deployed:"
           kubectl get all -n default
+
+      - name: X
+        run: curl http://localhost/get

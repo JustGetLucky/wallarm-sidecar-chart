@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dummy-app
-  namespace: default
 spec:
   replicas: 1
   selector:
@@ -15,15 +14,20 @@ spec:
         wallarm-sidecar: enabled
       annotations:
         sidecar.wallarm.io/wallarm-mode: block
-        sidecar.wallarm.io/sidecar-iptables-enable: "true"
-        sidecar.wallarm.io/sidecar-deployment-scheme: single
     spec:
       containers:
         - name: application
-          image: mockserver/mockserver
-          env:
-            - name: MOCKSERVER_SERVER_PORT
-              value: "80"
+          image: kennethreitz/httpbin
           ports:
             - name: http
               containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /status/200
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
