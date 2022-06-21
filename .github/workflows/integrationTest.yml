@@ -1,0 +1,58 @@
+name: Integration test
+
+on:
+  push:
+    branches: [ "main", "helm-chart", "github-actions" ]
+    tags:
+      - '**'
+#  pull_request:
+#    branches: [ "main" ]
+#
+#
+  workflow_dispatch:
+
+
+jobs:
+  lint:
+    name: Integration test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Prepare Kind cluster
+        uses: helm/kind-action@v1.3.0
+        with:
+          verbosity: "0"
+          wait: "240s"
+          config: ./test/kind/kind.yaml
+
+      - name: Check Kind cluster
+        run: |
+          kubectl cluster-info
+          kubectl wait --for=condition=Ready pods --all -n kube-system
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}
+
+      - name: Install Helm chart
+        run: |
+          set -x
+          helm version
+          helm install wallarm-sidecar . \
+          --set wallarmApi.host=audit.api.wallarm.com \
+          --set wallarmApi.token=${{ secrets.WALLARM_TOKEN }} \
+          --namespace wallarm-sidecar \
+          --create-namespace \
+          --wait
+          helm list --namespace wallarm-sidecar
+          kubectl get all --namespace wallarm-sidecar
+
+      - name: Run test
+        run: |
+          cd test
+          pytest integration_test.py
