@@ -2,7 +2,7 @@ name: Test artifacts
 
 on:
   push:
-    branches: [ "main", "helm-chart" ]
+    branches: [ "main", "helm-chart", "github-actions" ]
     tags:
       - '**'
 #  pull_request:

@@ -70,7 +70,7 @@ def port(pytestconfig):
 
 class TestMainFunctionality:
     @pytest.mark.parametrize("config", patchList)
-    def test_main_functionality(self, config, helpers, host, port, teardown):
+    def test_main_functionality(self, config, helpers, host, port, teardown_namespace):
         config_path = f'{PATCHES_PATH}/{config}'
         namespace = config.replace('_', '-')
         base_url = f'http://{host}:{port}'
@@ -78,7 +78,7 @@ class TestMainFunctionality:
         forbidden_url = base_url + FORBIDDEN_HTTP_PATH
 
         # Register teardown
-        teardown['namespace'] = namespace
+        teardown_namespace['namespace'] = namespace
 
         namespace_created = helpers.create_namespace(namespace)
         assert namespace_created.returncode == 0, namespace_created.stderr
@@ -99,7 +99,7 @@ class TestMainFunctionality:
         assert forbidden_request.status_code == 403
 
     @pytest.fixture(scope="function")
-    def teardown(self, helpers):
+    def teardown_namespace(self, helpers):
         config = {}
         yield config
         namespace = config.get('namespace')
