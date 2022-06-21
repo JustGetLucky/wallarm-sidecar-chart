@@ -12,8 +12,6 @@ spec:
       labels:
         app: dummy-app
         wallarm-sidecar: enabled
-      annotations:
-        sidecar.wallarm.io/wallarm-mode: block
     spec:
       containers:
         - name: application
