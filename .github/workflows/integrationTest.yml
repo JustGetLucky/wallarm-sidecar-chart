@@ -43,7 +43,7 @@ jobs:
       - name: Check Kind cluster
         run: |
           kubectl cluster-info
-          kubectl wait --for=condition=Ready pods --all -n kube-system
+          kubectl wait --for=condition=Ready pods --all --timeout=180s -n kube-system
           echo "current-context:" $(kubectl config current-context)
           echo "environment-kubeconfig:" ${KUBECONFIG}
 
