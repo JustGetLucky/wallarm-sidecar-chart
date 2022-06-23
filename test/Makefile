@@ -1,7 +1,7 @@
 KUBE_CLUSTER_NAME=wallarm-sidecar-chart
 KUBE_CONTEXT=kind-$(KUBE_CLUSTER_NAME)
 
-all: create_cluster install_chart run_test
+all: create_cluster install_chart run_test delete_cluster
 
 create_cluster:
 	@kind create cluster --name $(KUBE_CLUSTER_NAME) --config kind/kind.yaml
