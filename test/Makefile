@@ -7,13 +7,13 @@ create_cluster:
 	@kind create cluster --name $(KUBE_CLUSTER_NAME) --config kind/kind.yaml
 
 install_chart:
-	@helm install wallarm-sidecar ../. -f ../test-values.yaml --namespace wallarm-sidecar --create-namespace --wait
+	@helm install wallarm-sidecar ../. -f ../test-values.yaml --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar --create-namespace --wait
 
 run_test:
 	@pytest --kube_context $(KUBE_CONTEXT)
 
 upgrade_chart:
-	@helm upgrade wallarm-sidecar ../. -f ../test-values.yaml --namespace wallarm-sidecar --wait
+	@helm upgrade wallarm-sidecar ../. -f ../test-values.yaml --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar --wait
 
 delete_cluster:
 	@kind delete cluster --name $(KUBE_CLUSTER_NAME)
