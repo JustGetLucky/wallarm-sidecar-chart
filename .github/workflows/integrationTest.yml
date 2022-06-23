@@ -39,6 +39,7 @@ jobs:
           wait: "240s"
           config: ./test/kind/kind.yaml
           node_image: kindest/node:v${{ matrix.kubeVersion }}
+          cluster_name: kind
 
       - name: Check Kind cluster
         run: |
