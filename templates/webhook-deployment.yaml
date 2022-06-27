@@ -36,6 +36,9 @@ spec:
           image: "{{ .registry }}/{{ .image }}:{{ .tag }}"
           imagePullPolicy: {{ .pullPolicy }}
           {{- end }}
+        {{- if hasKey .Values.admissionWebhook "dev" }}
+          command: {{ toYaml .Values.admissionWebhook.dev.command | nindent 12 }}
+        {{- else }}
           args:
           - -port={{ .Values.admissionWebhook.port }}
           - -sidecar-template=/etc/webhook/config/sidecar-template.yaml
@@ -44,6 +47,7 @@ spec:
           - -tls-key=/usr/local/certificates/key
           - -webhook-inject-path={{ .Values.admissionWebhook.injectPath }}
           - -webhook-health-path={{ .Values.admissionWebhook.healthPath }}
+        {{- end }}
           volumeMounts:
             - name: webhook-config
               mountPath: /etc/webhook/config
@@ -51,10 +55,14 @@ spec:
             - name: webhook-cert
               mountPath: /usr/local/certificates
               readOnly: true
+          {{- if hasKey .Values.admissionWebhook "dev" }}
+            {{ toYaml .Values.admissionWebhook.dev.volumeMounts | nindent 12 }}
+          {{- end }}
           ports:
             - name: webhook
               containerPort: {{ .Values.admissionWebhook.port }}
               protocol: TCP
+        {{- if not (hasKey .Values.admissionWebhook "dev") }}
           livenessProbe:
             httpGet:
               path: {{ .Values.admissionWebhook.healthPath }}
@@ -75,6 +83,7 @@ spec:
             timeoutSeconds: 1
             successThreshold: 1
             failureThreshold: 5
+        {{- end }}
           {{- if .Values.admissionWebhook.resources }}
           resources: {{ toYaml .Values.admissionWebhook.resources | nindent 12 }}
           {{- end }}
@@ -85,6 +94,9 @@ spec:
         - name: webhook-config
           configMap:
             name: {{ include "wallarm-sidecar.name" . }}-webhook
+      {{- if hasKey .Values.admissionWebhook "dev" }}
+        {{ toYaml .Values.admissionWebhook.dev.volumes | nindent 8 }}
+      {{- end }}
     {{- if .Values.admissionWebhook.nodeSelector }}
       nodeSelector: {{ toYaml .Values.admissionWebhook.nodeSelector | nindent 8 }}
     {{- end }}

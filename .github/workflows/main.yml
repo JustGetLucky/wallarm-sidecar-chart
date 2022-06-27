@@ -23,7 +23,7 @@ jobs:
           helm lint . --debug
 
   validate:
-    name: Kubeval
+    name: Validate manifests
     env:
       KUBEVAL_SCHEMA_LOCATION: 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/'
     needs: lint
@@ -101,9 +101,7 @@ jobs:
           --namespace wallarm-sidecar \
           --create-namespace \
           --wait \
-          --timeout 10m0s \
-          --debug
-          helm list --namespace wallarm-sidecar
+          --timeout 10m0s
           helm status wallarm-sidecar --namespace wallarm-sidecar
           kubectl get all --namespace wallarm-sidecar
 
