@@ -24,6 +24,8 @@ jobs:
 
   validate:
     name: Kubeval
+    env:
+      KUBEVAL_SCHEMA_LOCATION: 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/'
     needs: lint
     runs-on: ubuntu-latest
     strategy:
