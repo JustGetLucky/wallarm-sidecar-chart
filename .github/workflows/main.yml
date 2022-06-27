@@ -101,7 +101,8 @@ jobs:
           --namespace wallarm-sidecar \
           --create-namespace \
           --wait \
-          --timeout 10m0s
+          --timeout 10m0s \
+          --debug
           helm list --namespace wallarm-sidecar
           helm status wallarm-sidecar --namespace wallarm-sidecar
           kubectl get all --namespace wallarm-sidecar
