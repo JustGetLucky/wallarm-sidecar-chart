@@ -7,11 +7,3 @@
 {{- print "extensions/v1beta1" -}}
 {{- end -}}
 {{- end -}}
-
-{{- define "cronJob.apiVersion" -}}
-{{- if .Capabilities.APIVersions.Has "batch/v1/CronJob" -}}
-{{- print "batch/v1" -}}
-{{- else -}}
-{{- print "batch/v1beta1" -}}
-{{- end -}}
-{{- end -}}
