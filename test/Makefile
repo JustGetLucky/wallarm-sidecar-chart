@@ -1,21 +1,27 @@
 KUBE_CLUSTER_NAME=wallarm-sidecar-chart
 KUBE_CONTEXT=kind-$(KUBE_CLUSTER_NAME)
 
-all: create_cluster install_chart run_test delete_cluster
+all: lint cluster_up chart_install test cluster_down
 
-create_cluster:
+lint:
+	@helm lint ../
+
+cluster_up:
 	@kind create cluster --name $(KUBE_CLUSTER_NAME) --config kind/kind.yaml
 
-install_chart:
-	@helm install wallarm-sidecar ../. -f ../test-values.yaml --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar --create-namespace --wait
+chart_install:
+	@helm install wallarm-sidecar ../. -f ../values.test.yaml --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar --create-namespace
 
-run_test:
+test:
 	@pytest --kube_context $(KUBE_CONTEXT)
 
-upgrade_chart:
-	@helm upgrade wallarm-sidecar ../. -f ../test-values.yaml --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar --wait
+chart_upgrade:
+	@helm upgrade wallarm-sidecar ../. -f ../values.test.yaml --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar
 
-delete_cluster:
+chart_uninstall:
+	@helm uninstall wallarm-sidecar --kube-context $(KUBE_CONTEXT) --namespace wallarm-sidecar
+
+cluster_down:
 	@kind delete cluster --name $(KUBE_CLUSTER_NAME)
 
-.PHONY: create_cluster install_chart run_test upgrade_chart delete_cluster
+.PHONY: lint create_cluster install_chart run_test upgrade_chart delete_cluster
