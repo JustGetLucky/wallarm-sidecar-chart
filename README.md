@@ -41,7 +41,7 @@ Where `${API_TOKEN}` is the Wallarm node API token
 Sidecar injection is controlled on a per-pod basis, by configuring the `wallarm-sidecar` label on a pod.
 
 | Label           | Enabled value | Disabled value |
-| --------------- | ------------- | -------------- |
+|-----------------|---------------|----------------|
 | wallarm-sidecar | enabled       | disabled       |
 
 Sidecar injection has the following logic:
