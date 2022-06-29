@@ -969,25 +969,3 @@ sidecarDefaults:
         #    cpu: 100m
         #    memory: 64Mi
 
-# -- Configuration of sidecar injector module
-# @default -- *See below for details*
-admissionWebhook:
-  # -- Admission webhook failure policy
-  failurePolicy: Fail
-
-  # -- Configuration for certgen and patch helper Jobs
-  # @default -- *See below for details*
-  patch:
-    image:
-      # -- Image registry
-      registry: k8s.gcr.io
-      # -- Image repository
-      image: ingress-nginx/kube-webhook-certgen
-      # -- Image tag
-      tag: v1.1.1
-      # -- Image pull policy
-      pullPolicy: IfNotPresent
-    # -- Resources for certgen and patch helper Jobs
-    resources: {}
-    runAsUser: 2000
-    fsGroup: 2000
