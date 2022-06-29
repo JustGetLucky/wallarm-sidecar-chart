@@ -1,7 +1,6 @@
 {{/*
 Expand the name of the chart.
 */}}
-
 {{- define "wallarm-sidecar.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
@@ -25,25 +24,17 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "wallarm-sidecar.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Common labels
 */}}
 {{- define "wallarm-sidecar.labels" -}}
-helm.sh/chart: {{ include "wallarm-sidecar.chart" . }}
 {{ include "wallarm-sidecar.selectorLabels" . }}
+app.kubernetes.io/app: {{ template "wallarm-sidecar.name" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/part-of: {{ template "wallarm-sidecar.name" . }}
-{{- if .Values.commonLabels }}
-{{ toYaml .Values.commonLabels }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+{{- if .Values.extraLabels }}
+{{- .Values.extraLabels | toYaml }}
 {{- end }}
 {{- end }}
 
@@ -55,38 +46,72 @@ app.kubernetes.io/name: {{ include "wallarm-sidecar.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-
-{{- define "wallarm-sidecar.postanalytics.name" -}}{{ include "wallarm-sidecar.name" . }}-postanalytics{{- end -}}
-{{- define "wallarm-sidecar.postanalytics.secret" -}}{{ include "wallarm-sidecar.name" . }}-postanalytics-secret{{- end -}}
-{{- define "wallarm-sidecar.postanalytics.tarantoolPort" -}}3313{{- end -}}
-{{- define "wallarm-sidecar.postanalytics.cronConfig" -}}{{ include "wallarm-sidecar.name" . }}-postanalytics-cron{{- end -}}
-
-{{- define "wallarm-sidecar.postanalytics.containerSecurityContext" -}}
-{{- if .Values.postanalytics.containerSecurityContext -}}
-{{- toYaml .Values.postanalytics.containerSecurityContext -}}
-{{- else -}}
-capabilities:
-  drop:
-  - ALL
-  add:
-  - NET_BIND_SERVICE
-runAsUser: 101
-allowPrivilegeEscalation: false
+{{/*
+Basic annotations
+*/}}
+{{- define "wallarm-sidecar.annotations" -}}
+{{- if .Values.extraAnnotations }}
+{{- .Values.extraAnnotations | toYaml }}
 {{- end }}
+{{- end }}
+
+{{/*
+Create the name of the service account for postanalytics
+*/}}
+{{- define "wallarm-sidecar.postanalytics.serviceAccountName" -}}
+{{- if .Values.postanalytics.serviceAccount.create -}}
+{{- include "wallarm-sidecar.fullname" . }}-postanalytics
+{{- else -}}
+{{- .Values.postanalytics.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
-{{- define "wallarm-sidecar.postanalytics.wallarmApiEnv" -}}
+{{/*
+Create the name of the service account for controller
+*/}}
+{{- define "wallarm-sidecar.controller.serviceAccountName" -}}
+{{- if .Values.controller.serviceAccount.create -}}
+{{- include "wallarm-sidecar.fullname" . }}-controller
+{{- else -}}
+{{- .Values.controller.serviceAccount.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Gives name of image to use
+*/}}
+{{- define "wallarm-sidecar.image" -}}
+{{- if .registry }}
+{{- printf "%s/%s:%s" .registry .image .tag }}
+{{- else }}
+{{- printf "%s:%s" .image .tag }}
+{{- end }}
+{{- end }}
+
+{{- define "wallarm-sidecar.credentials" -}}
 - name: WALLARM_API_HOST
-  value: {{ .Values.wallarmApi.host | quote }}
+  valueFrom:
+    secretKeyRef:
+      key: WALLARM_API_HOST
+      name: {{ template "wallarm-sidecar.fullname" . }}-credentials
 - name: WALLARM_API_PORT
-  value: {{ .Values.wallarmApi.port | quote }}
+  valueFrom:
+    secretKeyRef:
+      key: WALLARM_API_PORT
+      name: {{ template "wallarm-sidecar.fullname" . }}-credentials
 - name: WALLARM_API_USE_SSL
-  value: {{ .Values.wallarmApi.useSSL | toString | quote }}
+  valueFrom:
+    secretKeyRef:
+      key: WALLARM_API_USE_SSL
+      name: {{ template "wallarm-sidecar.fullname" . }}-credentials
 - name: WALLARM_API_CA_VERIFY
-  value: {{ .Values.wallarmApi.caVerify | toString | quote }}
+  valueFrom:
+    secretKeyRef:
+      key: WALLARM_API_CA_VERIFY
+      name: {{ template "wallarm-sidecar.fullname" . }}-credentials
 - name: WALLARM_API_TOKEN
   valueFrom:
     secretKeyRef:
-      key: token
-      name: {{ template "wallarm-sidecar.postanalytics.secret" . }}
+      key: WALLARM_API_TOKEN
+      name: {{ template "wallarm-sidecar.fullname" . }}-credentials
 {{- end -}}
