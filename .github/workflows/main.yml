@@ -1,4 +1,4 @@
-name: The main workwlow
+name: Main
 
 on:
   push:
