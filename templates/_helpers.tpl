@@ -81,7 +81,7 @@ Create the name of the service account for controller
   Generate certificates for controller
 */}}
 {{- define "wallarm-sidecar.controller.certificates" -}}
-{{- $serviceName := printf "%s-controller" (include "wallarm-sidecar.fullname" .) -}}
+{{- $serviceName := printf "%s-admission-tls" (include "wallarm-sidecar.fullname" .) -}}
 {{- $secret := lookup "v1" "Secret" .Release.Namespace $serviceName -}}
 {{- if $secret.data -}}
 ca: {{ index $secret.data "ca.crt" }}
@@ -96,7 +96,6 @@ crt: {{ $cert.Cert | b64enc }}
 key: {{ $cert.Key | b64enc }}
 {{- end -}}
 {{- end -}}
-
 
 {{/*
 Gives name of image to use

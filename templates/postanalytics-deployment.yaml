@@ -68,7 +68,7 @@ spec:
           command:
           - sh
           - -c
-          - /opt/wallarm/ruby/usr/share/wallarm-common/synccloud --one-time && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists --one-time -l STDOUT && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists-source --one-time -l STDOUT {{- if eq (default .Values.config.wallarm.fallback "off") "on" }} || true {{- end }}
+          - /opt/wallarm/ruby/usr/share/wallarm-common/synccloud --one-time && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists --one-time -l STDOUT && /opt/wallarm/ruby/usr/share/wallarm-common/sync-ip-lists-source --one-time -l STDOUT {{- if eq .Values.config.wallarm.fallback "on" }} || true {{- end }}
           env:
           {{- include "wallarm-sidecar.credentials" . | nindent 10 }}
           - name: WALLARM_SYNCNODE_OWNER

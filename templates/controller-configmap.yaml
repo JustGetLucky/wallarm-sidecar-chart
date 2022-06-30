@@ -14,9 +14,10 @@ metadata:
     {{- . | toYaml | nindent 4 }}
     {{- end }}
 data:
-  sidecar-config.yaml: |-
-    api: {{ toYaml .Values.config.wallarm.api | nindent 6 }}
-    wallarm: {{ toYaml .Values.sidecarDefaults.wallarm | nindent 6 }}
+  config.yaml: |-
+    api: {{ toYaml .Values.wallarmApi | nindent 6 }}
+    wallarm:
+      {{- toYaml .Values.sidecarDefaults.wallarm | nindent 6 }}
       version: {{ .Chart.AppVersion }}
       tarantool:
         host: {{ template "wallarm-sidecar.fullname" . }}-postanalytics.{{ .Release.Namespace }}.svc
