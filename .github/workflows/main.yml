@@ -1,4 +1,4 @@
-name: The main workwlow
+name: Main
 
 on:
   push:
@@ -101,7 +101,7 @@ jobs:
           --set config.wallarm.api.token=${{ secrets.WALLARM_TOKEN }} \
           --set config.controller.replicaCount=1 \
           --set config.controller.image.registry=quay.io \
-          --set config.controller.image.dmitriev/sidecar-injector \
+          --set config.controller.image.image=dmitriev/sidecar-injector \
           --namespace wallarm-sidecar \
           --create-namespace \
           --wait \
