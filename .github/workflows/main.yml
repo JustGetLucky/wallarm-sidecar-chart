@@ -1,8 +1,9 @@
-name: The main workwlow
+name: Main
 
 on:
   push:
-    branches: [ "main", "helm-chart"]
+    branches:
+      - '**'
     tags:
       - '**'
 
