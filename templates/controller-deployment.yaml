@@ -124,7 +124,7 @@ spec:
       volumes:
         - name: tls
           secret:
-            secretName: {{ include "wallarm-sidecar.fullname" . }}-controller-tls
+            secretName: {{ template "wallarm-sidecar.fullname" . }}-admission-tls
         - name: config
           configMap:
             name: {{ include "wallarm-sidecar.fullname" . }}-controller

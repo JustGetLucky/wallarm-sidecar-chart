@@ -5,6 +5,8 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: {{ template "wallarm-sidecar.fullname" . }}
   annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
     {{- include "wallarm-sidecar.annotations" . | nindent 4 }}
     {{- with .Values.admission.extraAnnotations }}
     {{- . | toYaml | nindent 4 }}
@@ -38,12 +40,13 @@ webhooks:
     sideEffects: None
 
 ---
-{{ if .Values.admission.secret.create -}}
 apiVersion: v1
 kind: Secret
 metadata:
   name: {{ template "wallarm-sidecar.fullname" . }}-admission-tls
   annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
     {{- include "wallarm-sidecar.annotations" . | nindent 4 }}
     {{- with .Values.admission.extraAnnotations }}
     {{- . | toYaml | nindent 4 }}
@@ -65,4 +68,3 @@ data:
   tls.crt: {{ $tls.crt }}
   tls.key: {{ $tls.key }}
   ca.crt: {{ $tls.ca }}
-{{ end -}}

@@ -1,0 +1,25 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "wallarm-sidecar.fullname" . }}-helm-hook
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- include "wallarm-sidecar.annotations" . | nindent 4 }}
+    {{- with .Values.controller.extraAnnotations }}
+    {{- . | toYaml | nindent 4 }}
+    {{- end }}
+  labels:
+    {{- include "wallarm-sidecar.labels" . | nindent 4 }}
+    app.kubernetes.io/component: helm-hook
+    {{- with .Values.controller.extraLabels }}
+    {{- . | toYaml | nindent 4 }}
+    {{- end }}
+rules:
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - mutatingwebhookconfigurations
+    verbs:
+      - delete

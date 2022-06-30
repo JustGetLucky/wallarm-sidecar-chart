@@ -81,20 +81,13 @@ Create the name of the service account for controller
   Generate certificates for controller
 */}}
 {{- define "wallarm-sidecar.controller.certificates" -}}
-{{- $serviceName := printf "%s-admission-tls" (include "wallarm-sidecar.fullname" .) -}}
-{{- $secret := lookup "v1" "Secret" .Release.Namespace $serviceName -}}
-{{- if $secret.data -}}
-ca: {{ index $secret.data "ca.crt" }}
-crt: {{ index $secret.data "tls.crt" }}
-key: {{ index $secret.data "tls.key" }}
-{{- else }}
+{{- $serviceName := printf "%s-controller" (include "wallarm-sidecar.fullname" .) -}}
 {{- $altNames := list (printf "%s.%s.svc" $serviceName .Release.Namespace) (printf "%s.%s" $serviceName .Release.Namespace) $serviceName  -}}
 {{- $ca := genCA (printf "*.%s.svc" .Release.Namespace) 3650 -}}
 {{- $cert := genSignedCert (printf "%s.%s.svc" $serviceName .Release.Namespace) nil $altNames 3650 $ca -}}
 ca: {{ $ca.Cert | b64enc }}
 crt: {{ $cert.Cert | b64enc }}
 key: {{ $cert.Key | b64enc }}
-{{- end -}}
 {{- end -}}
 
 {{/*
