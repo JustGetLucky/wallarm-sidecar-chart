@@ -69,14 +69,15 @@ spec:
         - name: controller
           image: {{ include "wallarm-sidecar.image" .Values.controller.image }}
           imagePullPolicy: "{{ .Values.controller.image.pullPolicy }}"
-          args:
-          - -port=8443
-          - -sidecar-template=/etc/controller/config/sidecar-template.yaml
-          - -sidecar-config=/etc/controller/config/config.yaml
-          - -tls-cert=/etc/controller/tls/tls.crt
-          - -tls-key=/etc/controller/tls/tls.key
-          - -webhook-inject-path=/inject
-          - -webhook-health-path=/healthz
+          {{ with .Values.controller.command -}}
+          command: {{- . | toYaml | nindent 10 }}
+          {{ end -}}
+          {{ with .Values.controller.args -}}
+          args: {{- . | toYaml | nindent 10 }}
+          {{ end -}}
+          {{ with .Values.controller.workdir -}}
+          workingDir: {{ . }}
+          {{ end -}}
           env:
           {{- include "wallarm-sidecar.credentials" . | nindent 10 }}
           {{- with .Values.controller.extraEnvs }}

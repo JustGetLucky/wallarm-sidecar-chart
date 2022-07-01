@@ -94,12 +94,16 @@ key: {{ $cert.Key | b64enc }}
 Gives name of image to use
 */}}
 {{- define "wallarm-sidecar.image" -}}
-{{- if .registry }}
-{{- printf "%s/%s:%s" .registry .image .tag }}
-{{- else }}
-{{- printf "%s:%s" .image .tag }}
-{{- end }}
-{{- end }}
+{{- if .fullname -}}
+{{- .fullname -}}
+{{- else -}}
+{{- if .registry -}}
+{{- printf "%s/%s:%s" .registry .image .tag -}}
+{{- else -}}
+{{- printf "%s:%s" .image .tag -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
 {{- define "wallarm-sidecar.credentials" -}}
 - name: WALLARM_API_HOST

@@ -940,6 +940,21 @@ controller:
   # - name: something
   #   emptyDir: {}
 
+  ### Container command (entrypoint). Not recommended to change this, helpful for local delevlopment
+  ###
+  command: []
+
+  ### Container arguments. Not recommended to change this, helpful for local delevlopment
+  ###
+  args:
+    - -port=8443
+    - -sidecar-template=/etc/controller/config/sidecar-template.yaml
+    - -sidecar-config=/etc/controller/config/config.yaml
+    - -tls-cert=/etc/controller/tls/tls.crt
+    - -tls-key=/etc/controller/tls/tls.key
+    - -webhook-inject-path=/inject
+    - -webhook-health-path=/healthz
+
   ### Additional environment variables to pass to the container
   ###
   extraEnvs: []
