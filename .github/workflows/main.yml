@@ -97,12 +97,15 @@ jobs:
           set -x
           helm version
           helm install wallarm-sidecar . \
-          --set wallarmApi.host=audit.api.wallarm.com \
-          --set wallarmApi.token=${{ secrets.WALLARM_TOKEN }} \
+          --set config.wallarm.api.host=audit.api.wallarm.com \
+          --set config.wallarm.api.token=${{ secrets.WALLARM_TOKEN }} \
+          --set config.controller.replicaCount=1 \
+          --set config.controller.image.registry=quay.io \
+          --set config.controller.image.image=dmitriev/sidecar-injector \
           --namespace wallarm-sidecar \
           --create-namespace \
           --wait \
-          --timeout 10m0s
+          --timeout 5m0s
           helm status wallarm-sidecar --namespace wallarm-sidecar
           kubectl get all --namespace wallarm-sidecar
 
